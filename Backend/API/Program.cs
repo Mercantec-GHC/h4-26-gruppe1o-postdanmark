@@ -1,6 +1,11 @@
+using API.Data;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// DbContext
+
 
 builder.AddServiceDefaults();
 
@@ -42,6 +47,14 @@ builder.Services.AddCors(options =>
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+IConfiguration Configuration = builder.Configuration;
+ 
+string connectionString = Configuration.GetConnectionString("DefaultConnection") 
+                          ?? Environment.GetEnvironmentVariable("DefaultConnection");
+ 
+builder.Services.AddDbContext<AppDBContext>(options =>
+    options.UseNpgsql(connectionString));
 
 // OpenAPI configuration will be handled by middleware
 
