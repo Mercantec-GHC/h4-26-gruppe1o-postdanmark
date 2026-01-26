@@ -1,5 +1,5 @@
 namespace API.Model;
-// Rolle for brugere Admin eller employee
+// Rolle for brugere: Admin eller employee
 public class Role : Common
 {
     public required string Name { get; set; }

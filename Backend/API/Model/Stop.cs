@@ -1,5 +1,6 @@
 namespace API.Model;
 
+// Et stop på en leveringsrute
 public class Stop : Common
 {
     public required string Address { get; set; }
