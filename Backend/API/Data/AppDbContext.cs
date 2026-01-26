@@ -25,7 +25,7 @@ public class AppDBContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        var seedDate = DateTime.SpecifyKind(new DateTime(2025, 11, 10, 10, 21, 28), DateTimeKind.Utc);
+        var seedDate = DateTime.SpecifyKind(new DateTime(2026, 01, 27, 13, 12, 0), DateTimeKind.Utc);
 
         // Seed Roles
         modelBuilder.Entity<Role>().HasData(
