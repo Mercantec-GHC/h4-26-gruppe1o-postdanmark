@@ -1,7 +1,7 @@
 namespace API.Model;
 
 //En rute indeholder flere stoppesteder og har en status om den er planlagt, i gang eller fuldført.
-public class Route : Common
+public class DeliveryRoute : Common
 {
     public string? Name { get; set; }
     public double TotalDistanceKm { get; set; }

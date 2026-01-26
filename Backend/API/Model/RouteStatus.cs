@@ -4,5 +4,5 @@ namespace API.Model;
 public class RouteStatus : Common
 {
     public required string Name { get; set; }
-    public List<Route> Routes { get; set; } = new();
+    public List<DeliveryRoute> Routes { get; set; } = new();
 }

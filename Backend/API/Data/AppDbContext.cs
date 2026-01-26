@@ -18,7 +18,7 @@ public class AppDBContext : DbContext
     
     // Hovedtabeller
     public DbSet<User> Users { get; set; }
-    public DbSet<API.Model.Route> Routes { get; set; }
+    public DbSet<DeliveryRoute> DeliveryRoutes { get; set; }
     public DbSet<Stop> Stops { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

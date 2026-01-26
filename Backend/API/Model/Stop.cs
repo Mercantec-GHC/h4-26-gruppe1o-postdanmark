@@ -8,7 +8,7 @@ public class Stop : Common
     public int SequenceOrder { get; set; }
 
     public int RouteId { get; set; }
-    public Route? Route { get; set; }
+    public DeliveryRoute? Route { get; set; }
 
     public int StopStatusId { get; set; }
     public StopStatus? Status { get; set; }

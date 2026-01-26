@@ -10,5 +10,5 @@ public class User : Common
     // Navigation property - Holder Role objekt for User
     public Role? Role { get; set; }
 
-    public List<Route> Routes { get; set; } = new();
+    public List<DeliveryRoute> Routes { get; set; } = new();
 }
