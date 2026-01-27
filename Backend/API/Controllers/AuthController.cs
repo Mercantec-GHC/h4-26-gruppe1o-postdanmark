@@ -31,7 +31,8 @@ public class AuthController : ControllerBase
         }
 
         // Tjekker om email allerede eksisterer
-        if (await _context.Users.AnyAsync(u => u.Email == registerDto.Email))
+        var normalizedRegisterEmail = registerDto.Email.ToLowerInvariant();
+        if (await _context.Users.AnyAsync(u => u.Email.ToLower() == normalizedRegisterEmail))
         {
             return BadRequest(new { message = "Email er allerede i brug." });
         }
@@ -46,10 +47,10 @@ public class AuthController : ControllerBase
         var hashedPassword = PasswordHelper.CreatePasswordHashString(registerDto.Password);
 
         // Opret ny bruger med standardrolle "Employee"
-        var user = new User
+        var user = new API.Model.User
         {
             Name = registerDto.Name,
-            Email = registerDto.Email,
+            Email = normalizedRegisterEmail, // Gem e-mail som små bogstaver
             Password = hashedPassword,
             RoleId = 1, // Default Employee rolle
             LastLogin = DateTime.UtcNow,
@@ -89,10 +90,11 @@ public class AuthController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        // Find bruger med email
+        // Find bruger med email (case-insensitive)
+        var normalizedLoginEmail = loginDto.Email.ToLowerInvariant();
         var user = await _context.Users
             .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.Email == loginDto.Email);
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedLoginEmail);
 
         if (user == null)
         {
@@ -126,5 +128,3 @@ public class AuthController : ControllerBase
         });
     }
 }
-
-
