@@ -1,9 +1,5 @@
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
 using API.Services;
 using API.Service;
 using API.Model;
@@ -24,6 +20,7 @@ public class AuthController : ControllerBase
         _jwtService = jwtService;
     }
 
+    
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterUserDto registerDto)
     {
@@ -82,5 +79,52 @@ public class AuthController : ControllerBase
             }
         });
     }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginUserDto loginDto)
+    {
+        // Validate model
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        // Find bruger med email
+        var user = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Email == loginDto.Email);
+
+        if (user == null)
+        {
+            return Unauthorized(new { message = "Ugyldig email eller adgangskode." });
+        }
+
+        // Verificer password
+        if (!PasswordHelper.VerifyPassword(loginDto.Password, user.Password))
+        {
+            return Unauthorized(new { message = "Ugyldig email eller adgangskode." });
+        }
+
+        // Opdater sidste login
+        user.LastLogin = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        // Generer JWT token
+        var token = _jwtService.GenerateToken(user);
+
+        return Ok(new
+        {
+            message = "Login succesfuldt.",
+            token,
+            user = new
+            {
+                id = user.Id,
+                name = user.Name,
+                email = user.Email,
+                role = user.Role.Name
+            }
+        });
+    }
 }
+
 
