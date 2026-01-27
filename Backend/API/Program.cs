@@ -1,6 +1,10 @@
 using API.Data;
+using API.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +17,41 @@ builder.AddServiceDefaults();
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+// Register JwtService
+builder.Services.AddScoped<JwtService>();
+
+// Configure JWT Authentication
+var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]
+    ?? Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
+    ?? "MyVerySecureSecretKeyThatIsAtLeast32CharactersLong123456789";
+
+var jwtIssuer = builder.Configuration["Jwt:Issuer"]
+    ?? Environment.GetEnvironmentVariable("JWT_ISSUER")
+    ?? "postdanmark-api";
+
+var jwtAudience = builder.Configuration["Jwt:Audience"]
+    ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE")
+    ?? "postdanmark-client";
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSecretKey))
+    };
+});
 
 // Add CORS support for Flutter app
 builder.Services.AddCors(options =>
@@ -91,7 +130,7 @@ app.MapScalarApiReference(options =>
 // Enable CORS - SKAL være før UseAuthorization
 app.UseCors(app.Environment.IsDevelopment() ? "AllowAllLocalhost" : "AllowFlutterApp");
 
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
