@@ -9,7 +9,12 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // DbContext
+string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+                          ?? Environment.GetEnvironmentVariable("DefaultConnection")
+                          ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
+builder.Services.AddDbContext<AppDBContext>(options =>
+    options.UseNpgsql(connectionString));
 
 builder.AddServiceDefaults();
 
@@ -87,13 +92,6 @@ builder.Services.AddCors(options =>
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-IConfiguration Configuration = builder.Configuration;
- 
-string connectionString = Configuration.GetConnectionString("DefaultConnection") 
-                          ?? Environment.GetEnvironmentVariable("DefaultConnection");
- 
-builder.Services.AddDbContext<AppDBContext>(options =>
-    options.UseNpgsql(connectionString));
 
 // OpenAPI configuration will be handled by middleware
 
