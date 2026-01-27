@@ -59,3 +59,19 @@ public class LoginUserDto
     [Required(ErrorMessage = "Adgangskode er påkrævet.")]
     public required string Password { get; set; }
 }
+
+public class GetUserDto
+{
+    public int Id { get; set; }
+    public required string Name { get; set; }
+    public required string Email { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public RoleDto Role { get; set; } = null!;
+}
+
+public class RoleDto
+{
+    public int Id { get; set; }
+    public required string Name { get; set; }
+}
+
