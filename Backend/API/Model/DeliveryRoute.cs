@@ -27,6 +27,11 @@ public class DeliveryRouteDto
     public List<StopDto> Stops { get; set; } = new();
 }
 
+// DTO til oprettelse af en ny leveringsrute. 
+// Admin sender en liste af adresser, som sendes til geocoding service for at få lat/long,
+// og derefter til routing service (f.eks. Google Directions API) for at optimere rækkefølgen,
+// beregne total distance og estimeret tid. Resultatet gemmes som en komplet DeliveryRoute med Stops.
+//DeliveryRoute hentes i frontend via en separat GET request efter oprettelse og MagicLane viser ruten på kortet.
 public class CreateDeliveryRouteDto
 {
     public required string Name { get; set; }
