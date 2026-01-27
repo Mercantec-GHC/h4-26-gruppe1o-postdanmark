@@ -53,7 +53,7 @@ IConfiguration Configuration = builder.Configuration;
 string connectionString = Configuration.GetConnectionString("DefaultConnection") 
                           ?? Environment.GetEnvironmentVariable("DefaultConnection");
  
-builder.Services.AddDbContext<AppDBContext>(options =>
+builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 // OpenAPI configuration will be handled by middleware
