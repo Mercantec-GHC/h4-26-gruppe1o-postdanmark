@@ -1,6 +1,6 @@
 namespace API.Model;
 
-//En rute indeholder flere stoppesteder og har en status om den er planlagt, i gang eller fuldført.
+//En rute tilhører en User og indeholder flere stoppesteder og har en status om den er planlagt, i gang eller fuldført.
 public class DeliveryRoute : Common
 {
     public string? Name { get; set; }

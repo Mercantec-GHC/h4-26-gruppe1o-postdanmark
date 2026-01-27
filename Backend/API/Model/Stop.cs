@@ -1,6 +1,8 @@
 namespace API.Model;
 
-// Et stop på en leveringsrute
+// Indeholder adresse, lat/long, sequence
+// Tilhører en DeliveryRoute
+// Har en StopStatus
 public class Stop : Common
 {
     public required string Address { get; set; }
