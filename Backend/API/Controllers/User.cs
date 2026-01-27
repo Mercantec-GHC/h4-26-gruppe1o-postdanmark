@@ -48,17 +48,18 @@ public class UserController : ControllerBase
                 TotalDistanceKm = route.TotalDistanceKm,
                 EstimatedDurationMinutes = route.EstimatedDurationMinutes,
                 UserId = route.UserId,
-                RouteStatusDto = route.RouteStatusId,
+                RouteStatusId = route.RouteStatusId,
+                StatusName = route.Status?.Name,
                 Stops = route.Stops.Select(stop => new StopDto
                 {
                     Address = stop.Address,
                     Latitude = stop.Latitude,
                     Longitude = stop.Longitude,
                     Sequence = stop.SequenceOrder,
-                    Status = new StopStatus
+                    Status = stop.Status != null ? new StopStatusDto
                     {
-                        Name = stop.Status?.Name ?? "Pending"
-                    }
+                        Name = stop.Status.Name
+                    } : null
                 }).ToList()
             }).ToList()
         }).ToList();

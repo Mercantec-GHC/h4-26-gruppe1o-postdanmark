@@ -21,5 +21,11 @@ public class StopDto
     public double Latitude { get; set; }
     public double Longitude { get; set; }
     public int Sequence { get; set; }
-    public StopStatus Status { get; set; }
+    public StopStatusDto? Status { get; set; }
+}
+
+//Denne dto skal med adresse gøre brug af geocoding service til at få lat og long samt sequence
+public class CreateStopDto
+{
+    public required string Address { get; set; }
 }
