@@ -3,6 +3,7 @@ using API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 using System.Text;
 
@@ -90,8 +91,37 @@ builder.Services.AddCors(options =>
 });
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
 
+// Configure Swagger with JWT Bearer Authentication
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "PostDanmark API",
+        Version = "v1",
+        Description = "API for PostDanmark delivery management"
+    });
+
+    // Add JWT Bearer Authentication
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Enter the token with the 'Bearer ' prefix.",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+
+    c.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecuritySchemeReference("Bearer"),
+            new List<string>()
+        }
+    });
+});
 
 // OpenAPI configuration will be handled by middleware
 
@@ -104,6 +134,12 @@ app.MapDefaultEndpoints();
 app.UseForwardedHeaders();
 
 app.MapOpenApi();
+
+// Generate Swagger JSON at /swagger/v1/swagger.json
+app.UseSwagger(c =>
+{
+    c.RouteTemplate = "openapi/{documentName}.json";
+});
 
 // Enable Swagger UI (klassisk dokumentation (Med Darkmode))
 app.UseSwaggerUI(options =>
