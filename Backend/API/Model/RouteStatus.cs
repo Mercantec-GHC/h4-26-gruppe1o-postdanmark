@@ -6,3 +6,8 @@ public class RouteStatus : Common
     public required string Name { get; set; }
     public List<DeliveryRoute> Routes { get; set; } = new();
 }
+
+public class RouteStatusDto
+{
+    public required string Name { get; set; }
+}

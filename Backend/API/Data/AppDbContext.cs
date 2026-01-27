@@ -48,5 +48,6 @@ public class AppDBContext : DbContext
             new StopStatus { Id = 2, Name = "Delivered", CreatedAt = seedDate, UpdatedAt = seedDate },
             new StopStatus { Id = 3, Name = "Failed", CreatedAt = seedDate, UpdatedAt = seedDate }
         );
+        
     }
 }

@@ -28,7 +28,8 @@ public class User : Common
     // Navigation property - Holder Role objekt for User
     public Role Role { get; set; } = null!; 
 
-    public List<DeliveryRoute> Routes { get; set; } = new();
+    // Renamed the property to DeliveryRoutes to match the expected name in UserController.
+    public List<DeliveryRoute> DeliveryRoutes { get; set; } = new();
 }
 
 public class RegisterUserDto
@@ -67,7 +68,7 @@ public class GetUserDto
     public required string Email { get; set; }
     public DateTime CreatedAt { get; set; }
     public RoleDto Role { get; set; } = null!;
+
+    // Added DeliveryRoutes property to match the expected structure in UserController.
+    public List<DeliveryRouteDto> DeliveryRoutes { get; set; } = new();
 }
-
-
-

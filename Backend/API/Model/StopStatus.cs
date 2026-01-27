@@ -6,3 +6,8 @@ public class StopStatus : Common
     public required string Name { get; set; }
     public List<Stop> Stops { get; set; } = new();
 }
+
+public class StopStatusDto
+{
+    public required string Name { get; set; }
+}

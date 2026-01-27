@@ -11,6 +11,15 @@ public class Stop : Common
     public int RouteId { get; set; }
     public DeliveryRoute? Route { get; set; }
 
-    public int StopStatusId { get; set; }
-    public StopStatus? Status { get; set; }
+    public int StopStatusId { get; set; } 
+    public StopStatus? Status { get; set; } 
+}
+
+public class StopDto
+{
+    public string Address { get; set; } = null!;
+    public double Latitude { get; set; }
+    public double Longitude { get; set; }
+    public int Sequence { get; set; }
+    public StopStatus Status { get; set; }
 }

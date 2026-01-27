@@ -21,9 +21,15 @@ public class UserController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<GetUserDto>>> GetAllUsers()
     {
+        // Explicitly specify the type for the query to resolve the type inference issue.
         var users = await _context.Users
             .Include(u => u.Role)
-            .ToListAsync();
+            .Include(u => u.DeliveryRoutes)
+                .ThenInclude(r => r.Stops)
+                    .ThenInclude(s => s.Status)
+            .Include(u => u.DeliveryRoutes)
+                .ThenInclude(r => r.Status)
+            .ToListAsync<User>();
 
         var userDtos = users.Select(user => new GetUserDto
         {
@@ -33,9 +39,28 @@ public class UserController : ControllerBase
             CreatedAt = user.CreatedAt,
             Role = new RoleDto
             {
-                Id = user.Role.Id,
+                
                 Name = user.Role.Name
-            }
+            },
+            DeliveryRoutes = user.DeliveryRoutes.Select(route => new DeliveryRouteDto
+            {
+                Name = route.Name,
+                TotalDistanceKm = route.TotalDistanceKm,
+                EstimatedDurationMinutes = route.EstimatedDurationMinutes,
+                UserId = route.UserId,
+                RouteStatusDto = route.RouteStatusId,
+                Stops = route.Stops.Select(stop => new StopDto
+                {
+                    Address = stop.Address,
+                    Latitude = stop.Latitude,
+                    Longitude = stop.Longitude,
+                    Sequence = stop.SequenceOrder,
+                    Status = new StopStatus
+                    {
+                        Name = stop.Status?.Name ?? "Pending"
+                    }
+                }).ToList()
+            }).ToList()
         }).ToList();
 
         return Ok(userDtos);
@@ -62,7 +87,6 @@ public class UserController : ControllerBase
             CreatedAt = user.CreatedAt,
             Role = new RoleDto
             {
-                Id = user.Role.Id,
                 Name = user.Role.Name
             }
         };
