@@ -64,13 +64,10 @@ public class AuthController : ControllerBase
         // Load rollen for brugeren
         await _context.Entry(user).Reference(u => u.Role).LoadAsync();
 
-        // Generer JWT token
-        var token = _jwtService.GenerateToken(user);
-
+        // Returner succesbesked og brugerinfo
         return Ok(new
         {
             message = "Bruger registreret succesfuldt.",
-            token,
             user = new
             {
                 id = user.Id,

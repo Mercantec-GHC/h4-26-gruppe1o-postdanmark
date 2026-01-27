@@ -69,9 +69,5 @@ public class GetUserDto
     public RoleDto Role { get; set; } = null!;
 }
 
-public class RoleDto
-{
-    public int Id { get; set; }
-    public required string Name { get; set; }
-}
+
 

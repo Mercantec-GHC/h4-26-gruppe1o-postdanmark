@@ -5,3 +5,9 @@ public class Role : Common
     public required string Name { get; set; }
     public List<User> Users { get; set; } = new();
 }
+
+public class RoleDto
+{
+    public int Id { get; set; }
+    public required string Name { get; set; }
+}
