@@ -108,7 +108,7 @@ builder.Services.AddSwaggerGen(c =>
     // Add JWT Bearer Authentication
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme. Enter the token with the 'Bearer ' prefix.",
+        Description = "Just Use the JWT token without Bearer prefix",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
