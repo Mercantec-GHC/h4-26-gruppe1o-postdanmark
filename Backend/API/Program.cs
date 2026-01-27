@@ -31,7 +31,7 @@ builder.Services.AddScoped<JwtService>();
 // Configure JWT Authentication
 var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]
     ?? Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
-    ?? "MyVerySecureSecretKeyThatIsAtLeast32CharactersLong123456789";
+    ?? throw new InvalidOperationException("JWT secret key not found in configuration or environment variables.");
 
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]
     ?? Environment.GetEnvironmentVariable("JWT_ISSUER")
