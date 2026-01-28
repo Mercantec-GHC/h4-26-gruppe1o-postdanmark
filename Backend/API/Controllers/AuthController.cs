@@ -7,6 +7,9 @@ using API.Data;
 
 namespace API.Controllers;
 
+/// <summary>
+/// Controller til håndtering af brugerregistrering og login.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
@@ -14,14 +17,28 @@ public class AuthController : ControllerBase
     private readonly AppDBContext _context;
     private readonly JwtService _jwtService;
     
+    /// <summary>
+    /// Initialiserer AuthController med databasekontekst og JWT-service.
+    /// </summary>
+    /// <param name="context">Databasekontekst</param>
+    /// <param name="jwtService">JWT-service til token generering</param>
     public AuthController(AppDBContext context, JwtService jwtService)
     {
         _context = context;
         _jwtService = jwtService;
     }
 
-    
+    /// <summary>
+    /// Registrerer en ny bruger.
+    /// </summary>
+    /// <param name="registerDto">Data for brugerregistrering</param>
+    /// <returns>
+    /// <para><b>200 OK:</b> Bruger registreret succesfuldt. Returnerer brugerinfo.</para>
+    /// <para><b>400 Bad Request:</b> Ugyldig model, email eller brugernavn er allerede i brug.</para>
+    /// </returns>
     [HttpPost("register")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] RegisterUserDto registerDto)
     {
         // Validate model
@@ -78,7 +95,19 @@ public class AuthController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Logger en bruger ind.
+    /// </summary>
+    /// <param name="loginDto">Login data</param>
+    /// <returns>
+    /// <para><b>200 OK:</b> Login succesfuldt. Returnerer JWT token og brugerinfo.</para>
+    /// <para><b>400 Bad Request:</b> Ugyldig model.</para>
+    /// <para><b>401 Unauthorized:</b> Ugyldig email eller adgangskode.</para>
+    /// </returns>
     [HttpPost("login")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginUserDto loginDto)
     {
         // Validate model
