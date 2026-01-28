@@ -14,6 +14,8 @@ builder.AddServiceDefaults();
 
 builder.Services.AddControllers();
 
+builder.Services.AddScoped<API.Services.TokenService>();
+
 // Add CORS support for Flutter app
 builder.Services.AddCors(options =>
 {
