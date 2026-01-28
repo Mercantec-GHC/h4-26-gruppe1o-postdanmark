@@ -36,6 +36,12 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public ActionResult<User> Login(LoginDto request)
     {
+        var user = _context.Users.FirstOrDefault(u => u.Email == request.Email);
+
+        if (user == null)
+        {
+            return BadRequest("User not found");
+        }
     }
 
 }
