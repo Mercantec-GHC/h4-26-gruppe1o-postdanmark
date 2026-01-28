@@ -39,7 +39,7 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<List<GetUserDto>>> GetAllUsers()
     {
-        // Explicitly specify the type for the query to resolve the type inference issue.
+        // Skriv tydeligt hvilken type data vi henter, så koden er nemmere at læse og fejl undgås.
         var users = await _context.Users
             .Include(u => u.Role)
             .Include(u => u.DeliveryRoutes)
