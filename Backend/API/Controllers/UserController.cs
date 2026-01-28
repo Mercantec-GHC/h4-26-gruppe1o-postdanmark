@@ -29,11 +29,9 @@ public class UserController : ControllerBase
     /// Henter alle brugere med tilhørende roller og ruter.
     /// Kun Admin-brugere har adgang.
     /// </summary>
-    /// <returns>
-    /// <para><b>200 OK:</b> Returnerer en liste af brugere med detaljer.</para>
-    /// <para><b>401 Unauthorized:</b> Hvis brugeren ikke er logget ind.</para>
-    /// <para><b>403 Forbidden:</b> Hvis brugeren ikke har Admin-rolle.</para>
-    /// </returns>
+    /// <response code="200">OK – Returnerer en liste af brugere med detaljer.</response>
+    /// <response code="401">Unauthorized – Hvis brugeren ikke er logget ind.</response>
+    /// <response code="403">Forbidden – Hvis brugeren ikke har Admin-rolle.</response>
     [HttpGet]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -92,12 +90,10 @@ public class UserController : ControllerBase
     /// Kun Admin-brugere har adgang.
     /// </summary>
     /// <param name="id">Brugerens ID</param>
-    /// <returns>
-    /// <para><b>200 OK:</b> Returnerer brugerens detaljer.</para>
-    /// <para><b>401 Unauthorized:</b> Hvis brugeren ikke er logget ind.</para>
-    /// <para><b>403 Forbidden:</b> Hvis brugeren ikke har Admin-rolle.</para>
-    /// <para><b>404 Not Found:</b> Hvis brugeren ikke findes.</para>
-    /// </returns>
+    /// <response code="200">OK – Returnerer brugerens detaljer.</response>
+    /// <response code="401">Unauthorized – Hvis brugeren ikke er logget ind.</response>
+    /// <response code="403">Forbidden – Hvis brugeren ikke har Admin-rolle.</response>
+    /// <response code="404">Not Found – Hvis brugeren ikke findes.</response>
     [HttpGet("{id}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status200OK)]

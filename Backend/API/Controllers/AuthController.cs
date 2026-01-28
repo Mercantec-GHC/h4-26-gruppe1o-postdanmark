@@ -32,10 +32,8 @@ public class AuthController : ControllerBase
     /// Registrerer en ny bruger.
     /// </summary>
     /// <param name="registerDto">Data for brugerregistrering</param>
-    /// <returns>
-    /// <para><b>200 OK:</b> Bruger registreret succesfuldt. Returnerer brugerinfo.</para>
-    /// <para><b>400 Bad Request:</b> Ugyldig model, email eller brugernavn er allerede i brug.</para>
-    /// </returns>
+    /// <response code="200">OK – Bruger registreret succesfuldt. Returnerer brugerinfo.</response>
+    /// <response code="400">Bad Request – Manglende eller ugyldige oplysninger, eller email/brugernavn er allerede i brug.</response>
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -99,11 +97,9 @@ public class AuthController : ControllerBase
     /// Logger en bruger ind.
     /// </summary>
     /// <param name="loginDto">Login data</param>
-    /// <returns>
-    /// <para><b>200 OK:</b> Login succesfuldt. Returnerer JWT token og brugerinfo.</para>
-    /// <para><b>400 Bad Request:</b> Ugyldig model.</para>
-    /// <para><b>401 Unauthorized:</b> Ugyldig email eller adgangskode.</para>
-    /// </returns>
+    /// <response code="200">OK – Login succesfuldt. Returnerer JWT token og brugerinfo.</response>
+    /// <response code="400">Bad Request – Manglende eller ugyldige loginoplysninger.</response>
+    /// <response code="401">Unauthorized – Ugyldig email eller adgangskode.</response>
     [HttpPost("login")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
