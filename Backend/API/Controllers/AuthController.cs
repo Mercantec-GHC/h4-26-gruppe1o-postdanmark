@@ -32,7 +32,12 @@ public class AuthController : ControllerBase
         _context.SaveChanges();
         return Ok(user);
     }
-        
+
+    [HttpPost("login")]
+    public ActionResult<User> Login(LoginDto request)
+    {
+    }
+
 }
 
 
