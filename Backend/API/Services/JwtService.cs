@@ -17,8 +17,8 @@ public class JwtService
     {
         //Load konfiguration fra appsettings eller environment variables
         _secretKey = configuration["Jwt:SecretKey"]
-            ?? Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
-            ?? "MyVerySecureSecretKeyThatIsAtLeast32CharactersLong123456789";
+                     ?? Environment.GetEnvironmentVariable("JWT_SECRET_KEY");
+            
 
         _issuer = configuration["Jwt:Issuer"]
             ?? Environment.GetEnvironmentVariable("JWT_ISSUER")
