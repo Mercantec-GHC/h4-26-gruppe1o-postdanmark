@@ -5,6 +5,8 @@ services:
       dockerfile: API/Dockerfile
     ports:
       - "4010:5000"
+    env_file:
+      - .env
     environment:
       - ASPNETCORE_URLS=http://+:5000
       - ASPNETCORE_ENVIRONMENT=Production
