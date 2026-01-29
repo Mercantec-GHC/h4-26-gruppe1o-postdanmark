@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using API.Data;
 using API.Services;
+using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -8,12 +9,14 @@ using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 using System.Text;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
-// DbContext
-string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-                          ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
-                          ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+// DbContext – både Configuration og env læses (Configuration får env fra ASP.NET, ellers eksplicit ConnectionStrings__DefaultConnection)
+string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                          ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+
+Console.WriteLine("Connection string: " + connectionString);
 
 builder.Services.AddDbContext<AppDBContext>(options =>
     options.UseNpgsql(connectionString));
