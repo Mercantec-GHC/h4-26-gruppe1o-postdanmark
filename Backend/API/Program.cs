@@ -14,7 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // DbContext – både Configuration og env læses (Configuration får env fra ASP.NET, ellers eksplicit ConnectionStrings__DefaultConnection)
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                          ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+                          ?? Environment.GetEnvironmentVariable("DefaultConnection");
 
 Console.WriteLine("Connection string: " + connectionString);
 
