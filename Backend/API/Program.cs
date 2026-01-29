@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // DbContext
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
-                          ?? Environment.GetEnvironmentVariable("DefaultConnection")
+                          ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
                           ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
 builder.Services.AddDbContext<AppDBContext>(options =>
