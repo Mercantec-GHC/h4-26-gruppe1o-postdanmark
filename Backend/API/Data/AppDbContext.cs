@@ -25,6 +25,43 @@ public class AppDBContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // Relationer mellem tabeller
+
+        // User <-> Role (many-to-one)
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.Role)
+            .WithMany(r => r.Users)
+            .HasForeignKey(u => u.RoleId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // DeliveryRoute <-> User (many-to-one)
+        modelBuilder.Entity<DeliveryRoute>()
+            .HasOne(dr => dr.User)
+            .WithMany(u => u.DeliveryRoutes)
+            .HasForeignKey(dr => dr.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // DeliveryRoute <-> RouteStatus (many-to-one)
+        modelBuilder.Entity<DeliveryRoute>()
+            .HasOne(dr => dr.Status)
+            .WithMany(rs => rs.Routes)
+            .HasForeignKey(dr => dr.RouteStatusId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Stop <-> DeliveryRoute (many-to-one)
+        modelBuilder.Entity<Stop>()
+            .HasOne(s => s.Route)
+            .WithMany(dr => dr.Stops)
+            .HasForeignKey(s => s.RouteId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Stop <-> StopStatus (many-to-one)
+        modelBuilder.Entity<Stop>()
+            .HasOne(s => s.Status)
+            .WithMany(ss => ss.Stops)
+            .HasForeignKey(s => s.StopStatusId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         var seedDate = DateTime.SpecifyKind(new DateTime(2026, 01, 27, 13, 12, 0), DateTimeKind.Utc);
 
         // Seed Roles
