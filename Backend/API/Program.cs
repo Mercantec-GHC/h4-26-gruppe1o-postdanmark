@@ -30,15 +30,15 @@ builder.Services.AddScoped<JwtService>();
 
 // Configure JWT Authentication
 var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]
-    ?? Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
+    ?? Environment.GetEnvironmentVariable("JWT__SECRET_KEY")
     ?? throw new InvalidOperationException("JWT secret key not found in configuration or environment variables.");
 
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]
-    ?? Environment.GetEnvironmentVariable("JWT_ISSUER")
+    ?? Environment.GetEnvironmentVariable("JWT__ISSUER")
     ?? "postdanmark-api";
 
 var jwtAudience = builder.Configuration["Jwt:Audience"]
-    ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE")
+    ?? Environment.GetEnvironmentVariable("JWT__AUDIENCE")
     ?? "postdanmark-client";
 
 builder.Services.AddAuthentication(options =>
