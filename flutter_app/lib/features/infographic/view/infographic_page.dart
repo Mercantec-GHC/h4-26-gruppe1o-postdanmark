@@ -210,7 +210,7 @@ class InfographicPage extends StatelessWidget {
             icon: Icons.input,
             color: Colors.orange,
             description:
-                'Input til BLoC. Repræsenterer brugerhandlinger eller systemhændelser (fx LoadWeatherData, RefreshWeatherData).',
+                'Input til BLoC. Repræsenterer brugerhandlinger eller systemhændelser (fx LoadData, RefreshData).',
           ),
           _buildSection(
             context,
@@ -226,7 +226,7 @@ class InfographicPage extends StatelessWidget {
             icon: Icons.output,
             color: Colors.green,
             description:
-                'Output fra BLoC. Repræsenterer UI-tilstanden (fx WeatherLoading, WeatherLoaded, WeatherError).',
+                'Output fra BLoC. Repræsenterer UI-tilstanden (fx Loading, Loaded, Error).',
           ),
           _buildSection(
             context,
@@ -364,17 +364,17 @@ class InfographicPage extends StatelessWidget {
                 constraints: const BoxConstraints(maxWidth: 600),
                 child: HighlightView(
                   '''// Dispatcher event til BLoC
-context.read<WeatherBloc>()
-  .add(LoadWeatherData());
+context.read<ExampleBloc>()
+  .add(LoadData());
 
 // Lyt til state ændringer
-BlocBuilder<WeatherBloc, WeatherState>(
+BlocBuilder<ExampleBloc, ExampleState>(
   builder: (context, state) {
-    if (state is WeatherLoading) {
+    if (state is ExampleLoading) {
       return CircularProgressIndicator();
     }
-    if (state is WeatherLoaded) {
-      return WeatherList(state.data);
+    if (state is ExampleLoaded) {
+      return DataList(state.data);
     }
     return ErrorWidget(state.error);
   },

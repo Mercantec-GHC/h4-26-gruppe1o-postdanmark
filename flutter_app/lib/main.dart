@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/config/app_config.dart';
 import 'core/di/injection.dart';
-import 'features/weather/bloc/weather_bloc.dart';
-import 'features/weather/view/weather_page.dart';
+import 'features/auth/view/login_screen.dart';
 import 'features/infographic/view/infographic_page.dart';
 import 'core/theme/theme.dart';
 
@@ -44,33 +42,16 @@ void main() async {
 /// - Staging (hvis I har det): Environment.staging
 
 /// Root app widget
-/// 
-/// Setup BLoC providers og MaterialApp.
-/// BLoCs injiceres via DI container (getIt).
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        // Weather BLoC - injected via DI
-        // Factory registration giver os ny instance hver gang
-        BlocProvider(
-          create: (context) => getIt<WeatherBloc>(),
-        ),
-        
-        // TODO: Tilføj flere BLoCs her efterhånden:
-        // BlocProvider(
-        //   create: (context) => getIt<LoginBloc>(),
-        // ),
-      ],
-      child: MaterialApp(
-        title: 'H4 Vejr App',
-        theme: appTheme,
-        debugShowCheckedModeBanner: false,
-        home: const MainNavigation(),
-      ),
+    return MaterialApp(
+      title: 'Postdanmark',
+      theme: appTheme,
+      debugShowCheckedModeBanner: false,
+      home: const LoginScreen(),
     );
   }
 }
@@ -86,8 +67,7 @@ class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
 
   static final List<Widget> _pages = <Widget>[
-    WeatherPage(),
-    InfographicPage(),
+    const InfographicPage(),
   ];
 
   @override
@@ -102,10 +82,6 @@ class _MainNavigationState extends State<MainNavigation> {
           });
         },
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.cloud),
-            label: 'Vejr',
-          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.info_outline),
             label: 'BLoC',
