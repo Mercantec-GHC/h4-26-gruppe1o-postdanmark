@@ -3,24 +3,24 @@ import { Platform } from "react-native";
 
 const isDevelopment = __DEV__;
 
-// For web: use localhost with HTTPS
-// For iOS Simulator: use localhost with HTTP
-// For physical devices: use network IP
+// For web: brug localhost med HTTPS
+// For iOS Simulator: brug localhost med HTTP
+// For fysiske enheder: brug netværks-IP
 const getDevApiUrl = () => {
   if (Platform.OS === "web") {
     return "https://localhost:7258/";
   }
 
-  // In Expo Go on physical devices, we need to use the network IP
-  // Check if running in Expo Go (storeClient) vs development build
+  // I Expo Go på fysiske enheder skal vi bruge netværks-IP
+  // Tjek om vi kører i Expo Go (storeClient) vs development build
   const isExpoGo = Constants.executionEnvironment === "storeClient";
 
   if (isExpoGo) {
-    // Expo Go on physical device - needs network IP
+    // Expo Go på fysisk enhed - skal bruge netværks-IP
     return "http://10.0.1.4:5197/";
   }
 
-  // Simulator or development build - can use localhost
+  // Simulator eller development build - kan bruge localhost
   return "http://localhost:5197/";
 };
 

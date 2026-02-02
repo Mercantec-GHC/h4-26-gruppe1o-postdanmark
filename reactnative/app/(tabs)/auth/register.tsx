@@ -12,23 +12,8 @@ import {
 import { ThemedView } from "@/components/themed-view";
 import { ThemedText } from "@/components/themed-text";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { API_BASE_URL } from "@/constants/config";
-
-interface RegisterData {
-  // Data for registrering
-  name: string;
-  email: string;
-  password: string;
-}
-
-interface ErrorResponse {
-  // Fejlrespons fra API
-  type?: string;
-  title?: string;
-  status?: number;
-  detail?: string;
-  instance?: string;
-}
+import * as authService from "@/services/authService";
+import { ApiError } from "@/services/authService";
 
 export default function RegisterScreen() {
   const [name, setName] = useState("");
@@ -51,61 +36,28 @@ export default function RegisterScreen() {
     setLoading(true);
 
     try {
-      const registerData: RegisterData = {
+      const response = await authService.register({
         name,
         email,
         password,
-      };
-
-      const url = `${API_BASE_URL}api/Auth/register`;
-      console.log("Attempting to fetch:", url);
-      console.log("API_BASE_URL:", API_BASE_URL);
-
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(registerData),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        // Renser felterne
-        setName("");
-        setEmail("");
-        setPassword("");
-        Alert.alert(
-          "Succes",
-          "Registrering gennemført! Din konto er blevet oprettet.",
-          [
-            {
-              text: "OK",
-            },
-          ]
-        );
-      } else {
-        // Håndterer fejlrespons
-        let errorMessage = "Registration failed. Please try again.";
+      // Renser felterne
+      setName("");
+      setEmail("");
+      setPassword("");
 
-        try {
-          const errorData: ErrorResponse = await response.json();
-          if (errorData.detail) {
-            errorMessage = errorData.detail;
-          } else if (errorData.title) {
-            errorMessage = errorData.title;
-          }
-        } catch (e) {
-          // Hvis parsing af JSON fejler, bruger default meddelelse
-        }
-
-        Alert.alert("Registration Failed", errorMessage);
-      }
-    } catch (error) {
       Alert.alert(
-        "Error",
-        "Network error. Please check your connection and try again."
+        "Succes",
+        "Registrering gennemført! Din konto er blevet oprettet.",
+        [{ text: "OK" }]
       );
+    } catch (error) {
+      if (error instanceof ApiError) {
+        Alert.alert("Registrering mislykkedes", error.message);
+      } else {
+        Alert.alert("Fejl", "Der opstod en netværksfejl. Prøv igen.");
+      }
       console.error("Registration error:", error);
     } finally {
       setLoading(false);
