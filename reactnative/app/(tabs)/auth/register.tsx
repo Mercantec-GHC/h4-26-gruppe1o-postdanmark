@@ -15,12 +15,14 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { API_BASE_URL } from "@/constants/config";
 
 interface RegisterData {
+  // Data for registrering
   name: string;
   email: string;
   password: string;
 }
 
 interface ErrorResponse {
+  // Fejlrespons fra API
   type?: string;
   title?: string;
   status?: number;
@@ -35,7 +37,7 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    // Validation
+    //Validerer feltene
     if (!name || !email || !password) {
       Alert.alert("Error", "Please fill in all fields");
       return;
@@ -69,7 +71,7 @@ export default function RegisterScreen() {
 
       if (response.ok) {
         const data = await response.json();
-        // Clear form
+        // Renser felterne
         setName("");
         setEmail("");
         setPassword("");
@@ -83,7 +85,7 @@ export default function RegisterScreen() {
           ]
         );
       } else {
-        // Handle error response
+        // Håndterer fejlrespons
         let errorMessage = "Registration failed. Please try again.";
 
         try {
@@ -94,7 +96,7 @@ export default function RegisterScreen() {
             errorMessage = errorData.title;
           }
         } catch (e) {
-          // If parsing JSON fails, use default message
+          // Hvis parsing af JSON fejler, bruger default meddelelse
         }
 
         Alert.alert("Registration Failed", errorMessage);
@@ -112,11 +114,11 @@ export default function RegisterScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : "height"} // For at sikre at keyboard ikke skjuler inputfelter
       style={styles.container}
     >
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={styles.scrollContent} // For at sikre at scrollview ikke skjuler inputfelter
         keyboardShouldPersistTaps="handled"
       >
         <ThemedView style={styles.content}>
