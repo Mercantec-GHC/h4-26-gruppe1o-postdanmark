@@ -55,7 +55,11 @@ export default function RegisterScreen() {
         password,
       };
 
-      const response = await fetch(`${API_BASE_URL}api/Auth/register`, {
+      const url = `${API_BASE_URL}api/Auth/register`;
+      console.log("Attempting to fetch:", url);
+      console.log("API_BASE_URL:", API_BASE_URL);
+
+      const response = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
