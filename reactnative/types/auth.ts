@@ -5,17 +5,25 @@ export interface RegisterData {
   password: string;
 }
 
+export interface LoginData {
+  // Data til brugerlogin
+  email: string;
+  password: string;
+}
+
 export interface User {
   // Brugeroplysninger
-  id: string;
+  id: number;
   name: string;
   email: string;
+  role?: string;
 }
 
 export interface AuthResponse {
   // Respons fra autentificering
+  message: string;
+  token: string;
   user: User;
-  token?: string;
 }
 
 export interface ErrorResponse {

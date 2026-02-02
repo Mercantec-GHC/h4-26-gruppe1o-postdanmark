@@ -15,52 +15,45 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as authService from "@/services/authService";
 import { ApiError } from "@/services/authService";
 
-export default function RegisterScreen() {
-  const [name, setName] = useState("");
+export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleRegister = async () => {
-    //Validerer feltene
-    if (!name || !email || !password) {
-      Alert.alert("Error", "Please fill in all fields");
-      return;
-    }
-
-    if (password.length < 8) {
-      Alert.alert("Error", "Password must be at least 8 characters");
+  const handleLogin = async () => {
+    // Validerer felterne
+    if (!email || !password) {
+      Alert.alert("Fejl", "Udfyld venligst alle felter");
       return;
     }
 
     setLoading(true);
 
     try {
-      const response = await authService.register({
-        name,
+      const response = await authService.login({
         email,
         password,
       });
 
       // Renser felterne
-      setName("");
       setEmail("");
       setPassword("");
 
       Alert.alert(
         "Succes",
-        "Registrering gennemført! Din konto er blevet oprettet.",
+        `${response.message}\nVelkommen ${response.user.name}!`,
         [{ text: "OK" }]
       );
 
-      console.log("Response:", response);
+      console.log("Token:", response.token);
+      console.log("User:", response.user);
     } catch (error) {
       if (error instanceof ApiError) {
-        Alert.alert("Registrering mislykkedes", error.message);
+        Alert.alert("Login mislykkedes", error.message);
       } else {
         Alert.alert("Fejl", "Der opstod en netværksfejl. Prøv igen.");
       }
-      console.error("Registration error:", error);
+      console.error("Login error:", error);
     } finally {
       setLoading(false);
     }
@@ -68,33 +61,26 @@ export default function RegisterScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"} // For at sikre at keyboard ikke skjuler inputfelter
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
       <ScrollView
-        contentContainerStyle={styles.scrollContent} // For at sikre at scrollview ikke skjuler inputfelter
+        contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
         <ThemedView style={styles.content}>
+          <ThemedView style={styles.iconContainer}>
+            <MaterialIcons name="login" size={80} color="#007AFF" />
+          </ThemedView>
           <ThemedText type="title" style={styles.title}>
-            Register
+            Log ind
           </ThemedText>
 
           <ThemedView style={styles.form}>
-            <ThemedText style={styles.label}>Name</ThemedText>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your name"
-              value={name}
-              onChangeText={setName}
-              autoCapitalize="words"
-              editable={!loading}
-            />
-
             <ThemedText style={styles.label}>Email</ThemedText>
             <TextInput
               style={styles.input}
-              placeholder="Enter your email"
+              placeholder="Indtast din email"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -103,27 +89,27 @@ export default function RegisterScreen() {
               editable={!loading}
             />
 
-            <ThemedText style={styles.label}>Password</ThemedText>
+            <ThemedText style={styles.label}>Adgangskode</ThemedText>
             <TextInput
               style={styles.input}
-              placeholder="Enter your password (min 8 characters)"
+              placeholder="Indtast din adgangskode"
               value={password}
               onChangeText={setPassword}
               secureTextEntry
               autoCapitalize="none"
-              autoComplete="password-new"
+              autoComplete="password"
               editable={!loading}
             />
 
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleRegister}
+              onPress={handleLogin}
               disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <ThemedText style={styles.buttonText}>Register</ThemedText>
+                <ThemedText style={styles.buttonText}>Log ind</ThemedText>
               )}
             </TouchableOpacity>
           </ThemedView>
