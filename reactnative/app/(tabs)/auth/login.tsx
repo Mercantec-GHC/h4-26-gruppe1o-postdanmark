@@ -14,6 +14,7 @@ import { ThemedText } from "@/components/themed-text";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import * as authService from "@/services/authService";
 import { ApiError } from "@/services/authService";
+import { saveToken } from "@/services/tokenStorage";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -35,6 +36,13 @@ export default function LoginScreen() {
         password,
       });
 
+      // Gemmer token sikkert
+      const tokenSaved = await saveToken(response.token);
+      if (!tokenSaved) {
+        Alert.alert("Fejl", "Kunne ikke gemme login-oplysninger");
+        return;
+      }
+
       // Renser felterne
       setEmail("");
       setPassword("");
@@ -45,7 +53,6 @@ export default function LoginScreen() {
         [{ text: "OK" }]
       );
 
-      console.log("Token:", response.token);
       console.log("User:", response.user);
     } catch (error) {
       if (error instanceof ApiError) {
