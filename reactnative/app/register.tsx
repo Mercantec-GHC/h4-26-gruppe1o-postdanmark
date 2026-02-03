@@ -25,6 +25,7 @@ const RegisterScreen: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [success, setSuccess] = React.useState(false);
 
   const validate = () => {
     if (!name || !email || !password || !confirmPassword) {
@@ -57,6 +58,7 @@ const RegisterScreen: React.FC = () => {
 
   const handleRegister = async () => {
     setError(null);
+    setSuccess(false);
     if (!validate()) return;
 
     try {
@@ -70,8 +72,8 @@ const RegisterScreen: React.FC = () => {
         const text = await res.text();
         throw new Error(text || `Registration failed (${res.status})`);
       }
-      // const data = await res.json(); // if API returns something
-      Alert.alert('Account created', 'Your account has been created. You can now log in.', [
+      setSuccess(true);
+      Alert.alert('Konto oprettet', 'Din konto er oprettet. Du kan nu logge ind.', [
         {
           text: 'OK',
           onPress: () => router.replace('/login'),
@@ -155,6 +157,7 @@ const RegisterScreen: React.FC = () => {
           </View>
         </View>
 
+        {!!success && <Text style={styles.successText}>Kontoen blev oprettet!</Text>}
         {!!error && <Text style={styles.errorText}>{error}</Text>}
 
         <TouchableOpacity style={styles.registerButton} onPress={handleRegister} disabled={loading}>
@@ -226,6 +229,11 @@ const styles = StyleSheet.create({
       android: { fontFamily: 'sans-serif' },
       default: {},
     }),
+  },
+  successText: {
+    color: '#2e7d32',
+    marginBottom: 12,
+    fontSize: 14,
   },
   errorText: {
     color: '#d32f2f',
