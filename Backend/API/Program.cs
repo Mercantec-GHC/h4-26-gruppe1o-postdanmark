@@ -87,7 +87,8 @@ builder.Services.AddCors(options =>
                 var uri = new Uri(origin);
                 return uri.Host == "localhost" ||
                        uri.Host == "127.0.0.1" ||
-                       uri.Host == "0.0.0.0";
+                       uri.Host == "0.0.0.0" ||
+                       uri.Host == "89.150.150.38";
             })
             .AllowAnyMethod()
             .AllowAnyHeader()
