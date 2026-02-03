@@ -1,2 +1,2 @@
 # H4
-Template til H4 med Flutter, React Native og C# backend
+Template til H4 med React Native og C# backend
