@@ -15,8 +15,11 @@ import { useRouter } from 'expo-router';
 
 const API_BASE = 'https://postdanmark-api.mercantec.tech';
 
+const USERNAME_REGEX = /^[a-zA-Z0-9_.-]+$/;
+
 const RegisterScreen: React.FC = () => {
   const router = useRouter();
+  const [name, setName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
@@ -24,21 +27,29 @@ const RegisterScreen: React.FC = () => {
   const [error, setError] = React.useState<string | null>(null);
 
   const validate = () => {
-    if (!email || !password || !confirmPassword) {
-      setError('Please fill in all fields.');
+    if (!name || !email || !password || !confirmPassword) {
+      setError('Udfyld alle felter.');
+      return false;
+    }
+    if (name.length < 3 || name.length > 32) {
+      setError('Brugernavn skal være mellem 3 og 32 tegn.');
+      return false;
+    }
+    if (!USERNAME_REGEX.test(name)) {
+      setError('Brugernavn må kun indeholde bogstaver, tal, _, . og -.');
       return false;
     }
     const emailRegex = /[^@\s]+@[^@\s]+\.[^@\s]+/;
     if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address.');
+      setError('Indtast en gyldig e-mailadresse.');
       return false;
     }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
+    if (password.length < 8) {
+      setError('Adgangskoden skal være mindst 8 tegn.');
       return false;
     }
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError('Adgangskoderne matcher ikke.');
       return false;
     }
     return true;
@@ -53,7 +64,7 @@ const RegisterScreen: React.FC = () => {
       const res = await fetch(`${API_BASE}/api/Auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ name, email, password }),
       });
       if (!res.ok) {
         const text = await res.text();
@@ -83,11 +94,27 @@ const RegisterScreen: React.FC = () => {
         <Text style={styles.welcomeText}>Opret konto</Text>
 
         <View style={styles.inputContainer}>
+          <Text style={styles.label}>Brugernavn</Text>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              placeholder="3-32 tegn (bogstaver, tal, _, . eller -)"
+              placeholderTextColor="#888"
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="next"
+            />
+          </View>
+        </View>
+
+        <View style={styles.inputContainer}>
           <Text style={styles.label}>Email</Text>
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
-              placeholder="Enter your email"
+              placeholder="Indtast din e-mail"
               placeholderTextColor="#888"
               value={email}
               onChangeText={setEmail}
@@ -99,11 +126,11 @@ const RegisterScreen: React.FC = () => {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Password</Text>
+          <Text style={styles.label}>Adgangskode</Text>
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
-              placeholder="Create a password"
+              placeholder="Mindst 8 tegn"
               placeholderTextColor="#888"
               value={password}
               onChangeText={setPassword}
@@ -114,11 +141,11 @@ const RegisterScreen: React.FC = () => {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.label}>Confirm Password</Text>
+          <Text style={styles.label}>Bekræft adgangskode</Text>
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
-              placeholder="Repeat your password"
+              placeholder="Gentag adgangskoden"
               placeholderTextColor="#888"
               value={confirmPassword}
               onChangeText={setConfirmPassword}
