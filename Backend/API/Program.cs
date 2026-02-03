@@ -72,7 +72,8 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
                 "https://h4-flutter.mercantec.tech",
                 "https://h4-api.mercantec.tech",
-                "http://localhost:8081"
+                "http://localhost:8081",
+                "https://postdanmark.mercantec.tech"
             )
             .AllowAnyMethod()               // Allow GET, POST, PUT, DELETE, etc.
             .AllowAnyHeader()               // Allow any headers
@@ -88,8 +89,7 @@ builder.Services.AddCors(options =>
                 var uri = new Uri(origin);
                 return uri.Host == "localhost" ||
                        uri.Host == "127.0.0.1" ||
-                       uri.Host == "0.0.0.0" ||
-                       uri.Host == "89.150.150.38";
+                       uri.Host == "0.0.0.0";
             })
             .AllowAnyMethod()
             .AllowAnyHeader()
