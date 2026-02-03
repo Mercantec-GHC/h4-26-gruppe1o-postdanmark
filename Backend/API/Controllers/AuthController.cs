@@ -39,8 +39,15 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] RegisterUserDto registerDto)
     {
-        // Validate model
-        if (!ModelState.IsValid)
+        // Map alias: if frontend sends "username" instead of "name"
+        if (string.IsNullOrWhiteSpace(registerDto.Name) && !string.IsNullOrWhiteSpace(registerDto.Username))
+        {
+            registerDto.Name = registerDto.Username;
+        }
+
+        // Re-validate after mapping aliases
+        ModelState.Clear();
+        if (!TryValidateModel(registerDto))
         {
             return BadRequest(ModelState);
         }
