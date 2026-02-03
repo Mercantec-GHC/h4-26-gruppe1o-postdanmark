@@ -13,18 +13,16 @@ services:
     networks:
       - app-network
 
-#  flutterweb:
-#    build:
-#      context: ./flutter_app
-#      dockerfile: Dockerfile
-#      args:
-#        - BUILDKIT_INLINE_CACHE=1
-#    ports:
-#      - "4011:80"
-#    depends_on:
-#      - backend
-#    networks:
-#      - app-network
+  frontend:
+    build:
+      context: ./reactnative
+      dockerfile: Dockerfile
+    ports:
+      - "4011:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
 
 networks:
   app-network:
