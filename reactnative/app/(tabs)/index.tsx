@@ -61,7 +61,25 @@ export default function MapScreen() {
             }
             Alert.alert('Great job!', 'One less stop to go.');
         }
+
+    // Tjek om ruten er færdig 
+        if (stops.length === 0) {
+            return (
+                <View style={styles.doneContainer}>
+                    <Text style={styles.emoji}>🎉</Text>
+                    <Text style={styles.doneTitle}>Godt arbejde!</Text>
+                    <Text style={styles.doneText}>Du har leveret alle pakker.</Text>
     
+                    <TouchableOpacity
+                        style={styles.button}
+                        onPress={() => Alert.alert("Rute afsluttet", "Du kan nu gå hjem eller hente en ny rute.")}
+                    >
+                        <Text style={styles.buttonText}>Afslut Rute</Text>
+                    </TouchableOpacity>
+                </View>
+            );
+        }
+        
       return (
           <View style={styles.container}>
             <MapView
@@ -100,10 +118,12 @@ export default function MapScreen() {
               {selectedStop && (
                   <View style={styles.card}>
                   <Text style={styles.cardTitle}>{selectedStop.title}</Text>
+                  <Text style={styles.cardText}>Klar til levering?</Text>
+                      
                   <TouchableOpacity 
                         style={styles.button} 
-                        onPress={finishDelivery}>  {/* close the white box*/}
-                  <Text style={styles.buttonText}>Mark as Delivered</Text>
+                        onPress={finishDelivery}>
+                  <Text style={styles.buttonText}>Marker som leveret</Text>
           </TouchableOpacity>
 
                   </View>
@@ -113,39 +133,71 @@ export default function MapScreen() {
      }
 
 const styles = StyleSheet.create({
-        container: {
-            flex: 1,
-        },
-        
-        map: {
-            width: '100%',
-                height: '100%',
-        }, 
-        
-        card: {
-            position: 'absolute',
-                bottom: 20,
-                left: 20,
-                right: 20,
-                backgroundColor: 'white',
-                padding: 20,
-                borderRadius: 15,
-                shadowColor: '#000',
-                elevation: 5,
-        },
-        cardTitle: {
-            fontSize: 18,
-                fontWeight: 'bold',
-                marginBottom: 10,
-        },
-        button: {
-            backgroundColor: '#0000FF',
-                padding: 10,
-                borderRadius: 8,
-                alignItems: 'center',
-        },
-        buttonText: {
-            color: 'white',
-                fontWeight: 'bold',
-        }
-    });
+    container: {
+        flex: 1,
+        backgroundColor: 'white', // Sikrer hvid baggrund
+    },
+    map: {
+        width: '100%',
+        height: '100%',
+    },
+    // Styling til "Fyraften" skærmen
+    doneContainer: {
+        flex: 1,
+        backgroundColor: 'white', // VIGTIGT: Tvinger hvid baggrund
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    emoji: {
+        fontSize: 80,
+        marginBottom: 20,
+    },
+    doneTitle: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: 'black', // Sikrer at teksten kan ses
+        marginBottom: 10,
+    },
+    doneText: {
+        fontSize: 18,
+        color: '#666',
+        marginBottom: 40,
+    },
+    // Styling til Leverings-kortet
+    card: {
+        position: 'absolute',
+        bottom: 30,
+        left: 20,
+        right: 20,
+        backgroundColor: 'white',
+        padding: 20,
+        borderRadius: 15,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    cardTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 5,
+    },
+    cardText: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 15,
+    },
+    button: {
+        backgroundColor: '#0000FF', // PostDanmark Blå
+        padding: 15,
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    buttonText: {
+        color: 'white',
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+});
