@@ -25,6 +25,45 @@ public class AppDBContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // ===== Relationer (One-to-Many) =====
+        
+        // Role -> Users (En rolle har mange brugere)
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.Role)
+            .WithMany(r => r.Users)
+            .HasForeignKey(u => u.RoleId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // User -> DeliveryRoutes (En bruger har mange leveringsruter)
+        modelBuilder.Entity<DeliveryRoute>()
+            .HasOne(dr => dr.User)
+            .WithMany(u => u.DeliveryRoutes)
+            .HasForeignKey(dr => dr.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // RouteStatus -> DeliveryRoutes (En rutestatus har mange ruter)
+        modelBuilder.Entity<DeliveryRoute>()
+            .HasOne(dr => dr.Status)
+            .WithMany(rs => rs.Routes)
+            .HasForeignKey(dr => dr.RouteStatusId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // DeliveryRoute -> Stops (En rute har mange stoppesteder)
+        modelBuilder.Entity<Stop>()
+            .HasOne(s => s.Route)
+            .WithMany(dr => dr.Stops)
+            .HasForeignKey(s => s.RouteId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // StopStatus -> Stops (En stopstatus har mange stops)
+        modelBuilder.Entity<Stop>()
+            .HasOne(s => s.Status)
+            .WithMany(ss => ss.Stops)
+            .HasForeignKey(s => s.StopStatusId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // ===== Seed Data =====
+        
         var seedDate = DateTime.SpecifyKind(new DateTime(2026, 01, 27, 13, 12, 0), DateTimeKind.Utc);
 
         // Seed Roles
