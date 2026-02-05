@@ -12,8 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-
-const API_BASE = 'https://postdanmark-api.mercantec.tech';
+import { API_BASE } from '../services/config';
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_.-]+$/;
 
