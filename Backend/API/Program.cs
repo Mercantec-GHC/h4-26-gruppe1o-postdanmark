@@ -31,6 +31,9 @@ builder.Services.AddControllers();
 // Register JwtService
 builder.Services.AddScoped<JwtService>();
 
+// Register GeolocationService
+builder.Services.AddHttpClient<IGeolocationService, GeolocationService>();
+
 // Configure JWT Authentication
 var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]
     ?? Environment.GetEnvironmentVariable("JWT__SECRET_KEY")
