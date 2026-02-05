@@ -1,5 +1,5 @@
 import { StyleSheet, View, Alert, Text, TouchableOpacity } from 'react-native';     //standard building blocks. View is the box, StyleSheet is the styling tool.
-import MapView, { Marker, Polyline } from '../../components/MapView';  // Wrapped to avoid importing native internals on web
+import MapView, { Marker, Polyline } from 'react-native-maps';  //This is the 'Pin'. I need this to show where the package stops are.
 import { useState, useEffect, useRef } from 'react'; // Added these for "Memory" and "Robot"
 import * as Location from 'expo-location';  // The GPS Tool
 
@@ -10,7 +10,7 @@ export default function MapScreen() {
         // We start by assuming "false" (Not allowed yet).
         const [hasPermission, setHasPermission] = useState(false);
         //Animate the camera. After deleting the app, remote and fly to the new first item in the list.
-        const mapRef = useRef<any>(null);
+        const mapRef = useRef<MapView>(null);
         // New Memory: Which stop did the user click? (Starts as null)
         const [selectedStop, setSelectedStop] = useState<any>(null);
         
