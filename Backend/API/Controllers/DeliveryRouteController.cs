@@ -9,20 +9,23 @@ namespace API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+
 public class DeliveryRouteController : ControllerBase
 {
     private readonly AppDBContext _context;
     private readonly IGeolocationService _geolocationService;
+    private readonly IRoutingService _routingService;
     private readonly ILogger<DeliveryRouteController> _logger;
 
     public DeliveryRouteController(
         AppDBContext context,
         IGeolocationService geolocationService,
+        IRoutingService routingService,
         ILogger<DeliveryRouteController> logger)
     {
         _context = context;
         _geolocationService = geolocationService;
+        _routingService = routingService;
         _logger = logger;
     }
 
@@ -44,8 +47,13 @@ public class DeliveryRouteController : ControllerBase
             return NotFound($"Bruger med ID {dto.UserId} blev ikke fundet");
         }
 
-        // Geokod alle adresser for at få koordinater
-        var stops = new List<Stop>();
+        // Geokod alle adresser for at få koordinater (uden sequence endnu)
+        var stopsWithCoords = new List<(Stop Stop, int OriginalIndex)>();
+        
+        // Hent standard "Scheduled" status én gang
+        var defaultStatus = await _context.StopStatuses.FirstOrDefaultAsync(s => s.Name == "Scheduled")
+            ?? await _context.StopStatuses.FirstAsync();
+            
         for (int i = 0; i < dto.Stops.Count; i++)
         {
             var stopDto = dto.Stops[i];
@@ -56,23 +64,76 @@ public class DeliveryRouteController : ControllerBase
                 return BadRequest($"Kunne ikke geokode adresse: {stopDto.Address}");
             }
 
-            // Hent standard "Scheduled" status
-            var defaultStatus = await _context.StopStatuses.FirstOrDefaultAsync(s => s.Name == "Scheduled")
-                ?? await _context.StopStatuses.FirstAsync();
-
-            stops.Add(new Stop
+            stopsWithCoords.Add((new Stop
             {
                 Address = stopDto.Address,
                 Latitude = coordinates.Value.Latitude,
                 Longitude = coordinates.Value.Longitude,
-                SequenceOrder = i + 1,
+                SequenceOrder = 0, // Sættes efter optimering
                 StopStatusId = defaultStatus.Id
-            });
+            }, i));
         }
 
         // Hent standard "Pending" rute status
         var routeStatus = await _context.RouteStatuses.FirstOrDefaultAsync(s => s.Name == "Pending")
             ?? await _context.RouteStatuses.FirstAsync();
+
+        // Optimer rute og beregn afstand/varighed
+        double totalDistanceKm = 0;
+        int estimatedDurationMinutes = 0;
+        var stops = new List<Stop>();
+
+        _logger.LogInformation("Stops count: {Count}", stopsWithCoords.Count);
+
+        if (stopsWithCoords.Count >= 2)
+        {
+            var coordinates = stopsWithCoords
+                .Select(s => (s.Stop.Latitude, s.Stop.Longitude))
+                .ToList();
+
+            _logger.LogInformation("Calling routing service for optimization with {Count} coordinates", coordinates.Count);
+
+            var routeResult = await _routingService.OptimizeRouteAsync(coordinates);
+            
+            _logger.LogInformation("Routing service returned: {Result}, Error: {Error}", 
+                routeResult != null ? "object" : "null", 
+                routeResult?.Error ?? "none");
+            
+            if (routeResult != null && routeResult.Success)
+            {
+                totalDistanceKm = routeResult.TotalDistanceKm;
+                estimatedDurationMinutes = routeResult.EstimatedDurationMinutes;
+                
+                // Anvend optimeret rækkefølge
+                for (int seq = 0; seq < routeResult.OptimizedOrder.Count; seq++)
+                {
+                    var originalIndex = routeResult.OptimizedOrder[seq];
+                    var stop = stopsWithCoords[originalIndex].Stop;
+                    stop.SequenceOrder = seq + 1;
+                    stops.Add(stop);
+                }
+                
+                _logger.LogInformation("Route optimized: {Distance} km, {Duration} min, Sequence: [{Seq}]", 
+                    totalDistanceKm, estimatedDurationMinutes, 
+                    string.Join(" -> ", stops.OrderBy(s => s.SequenceOrder).Select(s => s.Address)));
+            }
+            else
+            {
+                // Fallback: brug original rækkefølge
+                _logger.LogWarning("Routing failed, using original order. Error: {Error}", routeResult?.Error);
+                for (int i = 0; i < stopsWithCoords.Count; i++)
+                {
+                    stopsWithCoords[i].Stop.SequenceOrder = i + 1;
+                    stops.Add(stopsWithCoords[i].Stop);
+                }
+            }
+        }
+        else
+        {
+            // Kun ét stop - ingen optimering nødvendig
+            stopsWithCoords[0].Stop.SequenceOrder = 1;
+            stops.Add(stopsWithCoords[0].Stop);
+        }
 
         // Opret leveringsrute
         var route = new DeliveryRoute
@@ -81,8 +142,8 @@ public class DeliveryRouteController : ControllerBase
             UserId = dto.UserId,
             RouteStatusId = routeStatus.Id,
             Stops = stops,
-            TotalDistanceKm = 0, // TODO: Beregn med routing service
-            EstimatedDurationMinutes = 0 // TODO: Beregn med routing service
+            TotalDistanceKm = totalDistanceKm,
+            EstimatedDurationMinutes = estimatedDurationMinutes
         };
 
         _context.DeliveryRoutes.Add(route);
@@ -168,6 +229,39 @@ public class DeliveryRouteController : ControllerBase
             .Include(r => r.Stops)
             .ThenInclude(s => s.Status)
             .Where(r => r.UserId == userId)
+            .ToListAsync();
+
+        var dtos = routes.Select(route => new DeliveryRouteDto
+        {
+            Name = route.Name,
+            TotalDistanceKm = route.TotalDistanceKm,
+            EstimatedDurationMinutes = route.EstimatedDurationMinutes,
+            UserId = route.UserId,
+            RouteStatusId = route.RouteStatusId,
+            StatusName = route.Status?.Name,
+            Stops = route.Stops.OrderBy(s => s.SequenceOrder).Select(s => new StopDto
+            {
+                Address = s.Address,
+                Latitude = s.Latitude,
+                Longitude = s.Longitude,
+                Sequence = s.SequenceOrder,
+                Status = s.Status != null ? new StopStatusDto { Name = s.Status.Name } : null
+            }).ToList()
+        }).ToList();
+
+        return Ok(dtos);
+    }
+
+    /// <summary>
+    /// Hent alle leveringsruter
+    /// </summary>
+    [HttpGet]
+    public async Task<ActionResult<List<DeliveryRouteDto>>> GetAllRoutes()
+    {
+        var routes = await _context.DeliveryRoutes
+            .Include(r => r.Status)
+            .Include(r => r.Stops)
+            .ThenInclude(s => s.Status)
             .ToListAsync();
 
         var dtos = routes.Select(route => new DeliveryRouteDto
