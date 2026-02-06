@@ -15,6 +15,8 @@ export default function DeliveryMap() {
     // These start as 'null' (empty) until the browser finishes loading.
     const [MapModule, setMapModule] = useState<any>(null);
     const [LeafletModule, setLeafletModule] = useState<any>(null);
+    const [loadError, setLoadError] = useState<string | null>(null);
+    const [attempt, setAttempt] = useState(0);
 
     // Memory: Where is the user right now?
     const [userLocation, setUserLocation] = useState<any>(null);
@@ -37,14 +39,30 @@ export default function DeliveryMap() {
     useEffect(() => {
         (async () => {
             // Check: Are we in a browser?
-            if (typeof window !== 'undefined') {
+            if (typeof window !== 'undefined' && typeof document !== 'undefined') {
                 try {
-                    // "Lazy Load": Import the heavy map tools now
-                    const L = await import('leaflet');
-                    const RL = await import('react-leaflet');
+                    // Ensure Leaflet CSS is loaded (Metro/Expo Web doesn't support CSS imports)
+                    const ensureCss = () => new Promise<void>((resolve, reject) => {
+                        const id = 'leaflet-css-cdn';
+                        if (document.getElementById(id)) return resolve();
+                        const link = document.createElement('link');
+                        link.id = id;
+                        link.rel = 'stylesheet';
+                        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                        link.onload = () => resolve();
+                        link.onerror = () => reject(new Error('Failed to load Leaflet CSS'));
+                        document.head.appendChild(link);
+                    });
 
-                    // Import the CSS (Styles) so the map doesn't look broken
-                    require('leaflet/dist/leaflet.css');
+                    await ensureCss();
+
+                    // "Lazy Load": Import the heavy map tools now
+                    const Lmod = await import('leaflet');
+                    const RLmod = await import('react-leaflet');
+
+                    // Normalize ESM/CJS default exports
+                    const L: any = (Lmod as any).default ?? Lmod;
+                    const RL: any = (RLmod as any).default ?? RLmod;
 
                     // BUG FIX: Leaflet has a known bug where marker icons disappear in React.
                     // This code manually forces the icons to appear.
@@ -62,11 +80,13 @@ export default function DeliveryMap() {
                     setLeafletModule(L);
                     setMapModule(RL);
                 } catch (error) {
-                    console.error("Fejl:", error);
+                    console.error("Fejl ved indlæsning af kort:", error);
+                    const msg = (error instanceof Error) ? error.message : String(error);
+                    setLoadError(msg);
                 }
             }
         })();
-    }, []);
+    }, [attempt]);
 
     // EFFECT 2: The GPS Tracker
     useEffect(() => {
@@ -110,7 +130,28 @@ export default function DeliveryMap() {
         );
     }
 
-    // 6. THE LOADING SCREEN ⏳
+    // 6. THE LOADING / ERROR SCREENS ⏳
+    // If the loader failed, show a retry UI.
+    if (loadError) {
+        return (
+            <View style={styles.centerContainer}>
+                <Text style={styles.title}>Kunne ikke indlæse kortet</Text>
+                <Text style={{ marginTop: 8, marginBottom: 16, textAlign: 'center' }}>{String(loadError)}</Text>
+                <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => {
+                        setLoadError(null);
+                        setMapModule(null);
+                        setLeafletModule(null);
+                        setAttempt((a) => a + 1);
+                    }}
+                >
+                    <Text style={styles.buttonText}>Prøv igen</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
     // If the "Sneaky Loader" hasn't finished fetching Leaflet yet, show this.
     if (!MapModule || !LeafletModule) {
         return <View style={styles.centerContainer}><Text>Indlæser kort...</Text></View>;
