@@ -1,18 +1,19 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-  Platform,
-  ActivityIndicator,
-  Alert,
+    ActivityIndicator,
+    Alert,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { API_BASE } from '../services/config';
+import { playSuccessSound } from '../services/soundEffects';
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_.-]+$/;
 
@@ -72,6 +73,7 @@ const RegisterScreen: React.FC = () => {
         throw new Error(text || `Registration failed (${res.status})`);
       }
       setSuccess(true);
+      playSuccessSound();
       Alert.alert('Konto oprettet', 'Din konto er oprettet. Du kan nu logge ind.', [
         {
           text: 'OK',

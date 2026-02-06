@@ -1,19 +1,20 @@
+import { useRouter } from "expo-router";
 import React from "react";
 import {
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  StyleSheet,
-  Platform,
-  ActivityIndicator,
-  Alert,
+    ActivityIndicator,
+    Alert,
+    Image,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Image } from 'react-native';
-import { useRouter } from "expo-router";
 import { API_BASE } from "../services/config";
+import { playSuccessSound } from "../services/soundEffects";
 import { saveToken } from "../services/tokenStorage";
 
 const LoginScreen: React.FC = () => {
@@ -46,6 +47,7 @@ const LoginScreen: React.FC = () => {
       if (data.token) {
         await saveToken(data.token);
       }
+      playSuccessSound();
       router.replace("/(tabs)");
     } catch (e: any) {
       console.error("Login error", e);
