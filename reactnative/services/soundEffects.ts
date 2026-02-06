@@ -1,10 +1,8 @@
 import { createAudioPlayer } from 'expo-audio';
 
-const honkHonkSound = require('../sound-effects/honk-honk.wav');
-
-export function playSuccessSound(): void {
+export function playSoundEffect(soundSource: number): void {
   try {
-    const player = createAudioPlayer(honkHonkSound);
+    const player = createAudioPlayer(soundSource);
     let removed = false;
 
     const handleFinish = () => {
@@ -24,6 +22,6 @@ export function playSuccessSound(): void {
 
     player.play();
   } catch (error) {
-    console.warn('Could not play success sound:', error);
+    console.warn('Could not play sound effect:', error);
   }
 }

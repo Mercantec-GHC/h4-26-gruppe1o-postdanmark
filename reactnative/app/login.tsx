@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { API_BASE } from "../services/config";
-import { playSuccessSound } from "../services/soundEffects";
+import { playSoundEffect } from "../services/soundEffects";
 import { saveToken } from "../services/tokenStorage";
 
 const LoginScreen: React.FC = () => {
@@ -28,6 +28,7 @@ const LoginScreen: React.FC = () => {
     setError(null);
     if (!email || !password) {
       setError("Please enter both email and password.");
+      playSoundEffect(require("../sound-effects/error.wav"));
       return;
     }
     try {
@@ -47,11 +48,12 @@ const LoginScreen: React.FC = () => {
       if (data.token) {
         await saveToken(data.token);
       }
-      playSuccessSound();
+        playSoundEffect(require("../sound-effects/honk-honk.wav"));
       router.replace("/(tabs)");
     } catch (e: any) {
       console.error("Login error", e);
       setError(e?.message || "Login failed");
+      playSoundEffect(require("../sound-effects/error.wav"));
       Alert.alert("Login failed", e?.message || "Please try again.");
     } finally {
       setLoading(false);

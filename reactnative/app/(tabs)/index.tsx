@@ -2,6 +2,7 @@ import { StyleSheet, View, Alert, Text, TouchableOpacity } from 'react-native'; 
 import MapView, { Marker, Polyline } from 'react-native-maps';  //This is the 'Pin'. I need this to show where the package stops are.
 import { useState, useEffect, useRef } from 'react'; // Added these for "Memory" and "Robot"
 import * as Location from 'expo-location';  // The GPS Tool
+import { playSoundEffect } from '../../services/soundEffects';
 
 export default function MapScreen() {
     
@@ -29,6 +30,7 @@ export default function MapScreen() {
               let { status } = await Location.requestForegroundPermissionsAsync();
     
               if (status !== 'granted') {
+                  playSoundEffect(require('../../sound-effects/error.wav'));
                   Alert.alert('Permission needed', 'We need your location to show the route!');
                   return;
               }
@@ -48,6 +50,11 @@ export default function MapScreen() {
            
             //close the card
             setSelectedStop(null); // Close the white box after delivery
+
+            // Play fanfare when all deliveries are complete
+            if (newStops.length === 0) {
+                playSoundEffect(require('../../sound-effects/fanfare.wav'));
+            }
             
             //Move the map to the next stop, if there is one
             if (newStops.length > 0) {
@@ -109,7 +116,10 @@ export default function MapScreen() {
                 description={`This is stop number ${stop.id}`}
                 
                 //When clicked. save this stop into our memory
-                onPress={() => setSelectedStop(stop)} 
+                onPress={() => {
+                    playSoundEffect(require('../../sound-effects/bubble.wav'));
+                    setSelectedStop(stop);
+                }}
             />
             ))}
         </MapView>

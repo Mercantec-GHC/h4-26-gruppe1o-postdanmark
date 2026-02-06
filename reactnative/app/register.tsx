@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_BASE } from '../services/config';
-import { playSuccessSound } from '../services/soundEffects';
+import { playSoundEffect } from '../services/soundEffects';
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_.-]+$/;
 
@@ -59,7 +59,10 @@ const RegisterScreen: React.FC = () => {
   const handleRegister = async () => {
     setError(null);
     setSuccess(false);
-    if (!validate()) return;
+    if (!validate()) {
+      playSoundEffect(require("../sound-effects/error.wav"));
+      return;
+    }
 
     try {
       setLoading(true);
@@ -73,7 +76,7 @@ const RegisterScreen: React.FC = () => {
         throw new Error(text || `Registration failed (${res.status})`);
       }
       setSuccess(true);
-      playSuccessSound();
+        playSoundEffect(require("../sound-effects/honk-honk.wav"));
       Alert.alert('Konto oprettet', 'Din konto er oprettet. Du kan nu logge ind.', [
         {
           text: 'OK',
@@ -83,6 +86,7 @@ const RegisterScreen: React.FC = () => {
     } catch (e: any) {
       console.error('Register error', e);
       setError(e?.message || 'Registration failed');
+      playSoundEffect(require("../sound-effects/error.wav"));
       Alert.alert('Registration failed', e?.message || 'Please try again.');
     } finally {
       setLoading(false);
