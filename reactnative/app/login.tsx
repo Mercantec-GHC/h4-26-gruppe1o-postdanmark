@@ -11,6 +11,7 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Image } from 'react-native';
 import { useRouter } from "expo-router";
 import { API_BASE } from "../services/config";
 import { saveToken } from "../services/tokenStorage";
@@ -70,6 +71,11 @@ const LoginScreen: React.FC = () => {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
+        <Image
+            source={require('../assets/images/PostDanmark.png')}
+            style={styles.logo}
+        />
+
         {/* Welcome Header */}
         <Text style={styles.welcomeText}>Velkommen!</Text>
 
@@ -278,6 +284,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#1e88e5",
     fontWeight: "600",
+  },
+  logo: {
+    width: 300,
+      height: 200,
+      alignSelf: "center",
+      marginTop: -100,
   },
 });
 
