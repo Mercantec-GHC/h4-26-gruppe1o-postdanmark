@@ -4,6 +4,7 @@ namespace API.Model;
 public class DeliveryRoute : Common
 {
     public string? Name { get; set; }
+    public DateOnly ScheduledDate { get; set; }
     public double TotalDistanceKm { get; set; }
     public double EstimatedDurationMinutes { get; set; }
 
@@ -23,6 +24,7 @@ public class DeliveryRouteDto
 {
     public int Id { get; set; }
     public string? Name { get; set; }
+    public DateOnly ScheduledDate { get; set; }
     public double TotalDistanceKm { get; set; }
     public double EstimatedDurationMinutes { get; set; }
     public int UserId { get; set; }
@@ -40,6 +42,7 @@ public class DeliveryRouteDto
 public class CreateDeliveryRouteDto
 {
     public required string Name { get; set; }
+    public required DateOnly ScheduledDate { get; set; }
     public required int UserId { get; set; }
     public int? AssignedUserId { get; set; }
     public List<CreateStopDto> Stops { get; set; } = new();

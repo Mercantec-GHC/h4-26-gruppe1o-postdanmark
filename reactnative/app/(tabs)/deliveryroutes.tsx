@@ -31,6 +31,7 @@ interface Stop {
 interface DeliveryRoute {
   id: number;
   name: string;
+  scheduledDate: string;
   totalDistanceKm: number;
   estimatedDurationMinutes: number;
   userId: number;
@@ -146,8 +147,12 @@ export default function DeliveryRoutesScreen() {
         </View>
       </View>
 
-      {/* Rutedetaljer: afstand, varighed og antal stop */}
+      {/* Rutedetaljer: dato, afstand, varighed og antal stop */}
       <View style={styles.cardDetails}>
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Planlagt dato:</Text>
+          <Text style={styles.detailValue}>{new Date(item.scheduledDate).toLocaleDateString('da-DK')}</Text>
+        </View>
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Afstand:</Text>
           <Text style={styles.detailValue}>{item.totalDistanceKm.toFixed(1)} km</Text>

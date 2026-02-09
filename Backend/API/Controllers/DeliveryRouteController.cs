@@ -149,6 +149,7 @@ public class DeliveryRouteController : ControllerBase
         var route = new DeliveryRoute
         {
             Name = dto.Name,
+            ScheduledDate = dto.ScheduledDate,
             UserId = dto.UserId,
             AssignedUserId = dto.AssignedUserId,
             RouteStatusId = routeStatus.Id,
@@ -175,6 +176,7 @@ public class DeliveryRouteController : ControllerBase
         {
             Id = route.Id,
             Name = route.Name,
+            ScheduledDate = route.ScheduledDate,
             TotalDistanceKm = route.TotalDistanceKm,
             EstimatedDurationMinutes = route.EstimatedDurationMinutes,
             UserId = route.UserId,
@@ -217,6 +219,7 @@ public class DeliveryRouteController : ControllerBase
         {
             Id = route.Id,
             Name = route.Name,
+            ScheduledDate = route.ScheduledDate,
             TotalDistanceKm = route.TotalDistanceKm,
             EstimatedDurationMinutes = route.EstimatedDurationMinutes,
             UserId = route.UserId,
@@ -255,6 +258,7 @@ public class DeliveryRouteController : ControllerBase
         {
             Id = route.Id,
             Name = route.Name,
+            ScheduledDate = route.ScheduledDate,
             TotalDistanceKm = route.TotalDistanceKm,
             EstimatedDurationMinutes = route.EstimatedDurationMinutes,
             UserId = route.UserId,
@@ -292,6 +296,7 @@ public class DeliveryRouteController : ControllerBase
         {
             Id = route.Id,
             Name = route.Name,
+            ScheduledDate = route.ScheduledDate,
             TotalDistanceKm = route.TotalDistanceKm,
             EstimatedDurationMinutes = route.EstimatedDurationMinutes,
             UserId = route.UserId,
@@ -342,6 +347,7 @@ public class DeliveryRouteController : ControllerBase
         {
             Id = route.Id,
             Name = route.Name,
+            ScheduledDate = route.ScheduledDate,
             TotalDistanceKm = route.TotalDistanceKm,
             EstimatedDurationMinutes = route.EstimatedDurationMinutes,
             UserId = route.UserId,
@@ -386,6 +392,7 @@ public class DeliveryRouteController : ControllerBase
         {
             Id = route.Id,
             Name = route.Name,
+            ScheduledDate = route.ScheduledDate,
             TotalDistanceKm = route.TotalDistanceKm,
             EstimatedDurationMinutes = route.EstimatedDurationMinutes,
             UserId = route.UserId,
