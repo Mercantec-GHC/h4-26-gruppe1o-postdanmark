@@ -39,7 +39,14 @@ public class AppDBContext : DbContext
             .HasOne(dr => dr.User)
             .WithMany(u => u.DeliveryRoutes)
             .HasForeignKey(dr => dr.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // AssignedUser -> DeliveryRoutes (En bruger er tildelt mange leveringsruter)
+        modelBuilder.Entity<DeliveryRoute>()
+            .HasOne(dr => dr.AssignedUser)
+            .WithMany()
+            .HasForeignKey(dr => dr.AssignedUserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // RouteStatus -> DeliveryRoutes (En rutestatus har mange ruter)
         modelBuilder.Entity<DeliveryRoute>()

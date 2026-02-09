@@ -8,12 +8,15 @@ public class DeliveryRoute : Common
     public double EstimatedDurationMinutes { get; set; }
 
     public int UserId { get; set; }
-    public User? User { get; set; }
+    public User? User { get; set; } // Navigation property til User, som ejer ruten
 
     public int RouteStatusId { get; set; }
     public RouteStatus? Status { get; set; }
 
     public List<Stop> Stops { get; set; } = new();
+    
+    public int? AssignedUserId { get; set; }
+    public User? AssignedUser { get; set; }
 }
 
 public class DeliveryRouteDto
