@@ -38,9 +38,22 @@ const LoginScreen: React.FC = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+      // Error Message - Handling: Vi prøver at finde en pæn besked i svaret, ellers fallback til status
       if (!res.ok) {
         const text = await res.text();
-        throw new Error(text || `Login failed (${res.status})`);
+        let errorMessage = text; // Start med at antage, det bare er tekst
+
+        // Prøv at se, om det er en "Gavepakke" (JSON)
+        try {
+          const data = JSON.parse(text);
+          if (data && data.message) {
+            errorMessage = data.message; // BINGO! Vi fandt den pæne besked indeni
+          }
+        } catch (e) {
+          // Hvis det ikke var JSON, så beholder vi bare den rå tekst
+        }
+
+        throw new Error(errorMessage || `Login failed (${res.status})`);
       }
 
       //Gør brug af tokenStorage til at gemme tokenet
