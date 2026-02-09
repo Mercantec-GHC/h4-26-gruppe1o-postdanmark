@@ -135,11 +135,22 @@ public class DeliveryRouteController : ControllerBase
             stops.Add(stopsWithCoords[0].Stop);
         }
 
+        // Verificer at assigned bruger eksisterer (hvis angivet)
+        if (dto.AssignedUserId.HasValue)
+        {
+            var assignedUserExists = await _context.Users.AnyAsync(u => u.Id == dto.AssignedUserId.Value);
+            if (!assignedUserExists)
+            {
+                return NotFound($"Tildelt bruger med ID {dto.AssignedUserId.Value} blev ikke fundet");
+            }
+        }
+
         // Opret leveringsrute
         var route = new DeliveryRoute
         {
             Name = dto.Name,
             UserId = dto.UserId,
+            AssignedUserId = dto.AssignedUserId,
             RouteStatusId = routeStatus.Id,
             Stops = stops,
             TotalDistanceKm = totalDistanceKm,
@@ -151,8 +162,9 @@ public class DeliveryRouteController : ControllerBase
 
         // Indlæs relateret data
         await _context.Entry(route).Reference(r => r.Status).LoadAsync();
+
         await _context.Entry(route).Collection(r => r.Stops).LoadAsync();
-        
+
         foreach (var stop in route.Stops)
         {
             await _context.Entry(stop).Reference(s => s.Status).LoadAsync();
@@ -161,10 +173,13 @@ public class DeliveryRouteController : ControllerBase
         // Map til DTO
         var resultDto = new DeliveryRouteDto
         {
+            Id = route.Id,
             Name = route.Name,
             TotalDistanceKm = route.TotalDistanceKm,
             EstimatedDurationMinutes = route.EstimatedDurationMinutes,
             UserId = route.UserId,
+            AssignedUserId = route.AssignedUserId,
+
             RouteStatusId = route.RouteStatusId,
             StatusName = route.Status?.Name,
             Stops = route.Stops.Select(s => new StopDto
@@ -188,6 +203,7 @@ public class DeliveryRouteController : ControllerBase
     {
         var route = await _context.DeliveryRoutes
             .Include(r => r.Status)
+
             .Include(r => r.Stops)
             .ThenInclude(s => s.Status)
             .FirstOrDefaultAsync(r => r.Id == id);
@@ -199,10 +215,13 @@ public class DeliveryRouteController : ControllerBase
 
         var dto = new DeliveryRouteDto
         {
+            Id = route.Id,
             Name = route.Name,
             TotalDistanceKm = route.TotalDistanceKm,
             EstimatedDurationMinutes = route.EstimatedDurationMinutes,
             UserId = route.UserId,
+            AssignedUserId = route.AssignedUserId,
+
             RouteStatusId = route.RouteStatusId,
             StatusName = route.Status?.Name,
             Stops = route.Stops.OrderBy(s => s.SequenceOrder).Select(s => new StopDto
@@ -226,6 +245,7 @@ public class DeliveryRouteController : ControllerBase
     {
         var routes = await _context.DeliveryRoutes
             .Include(r => r.Status)
+
             .Include(r => r.Stops)
             .ThenInclude(s => s.Status)
             .Where(r => r.UserId == userId)
@@ -233,10 +253,13 @@ public class DeliveryRouteController : ControllerBase
 
         var dtos = routes.Select(route => new DeliveryRouteDto
         {
+            Id = route.Id,
             Name = route.Name,
             TotalDistanceKm = route.TotalDistanceKm,
             EstimatedDurationMinutes = route.EstimatedDurationMinutes,
             UserId = route.UserId,
+            AssignedUserId = route.AssignedUserId,
+
             RouteStatusId = route.RouteStatusId,
             StatusName = route.Status?.Name,
             Stops = route.Stops.OrderBy(s => s.SequenceOrder).Select(s => new StopDto
@@ -260,16 +283,114 @@ public class DeliveryRouteController : ControllerBase
     {
         var routes = await _context.DeliveryRoutes
             .Include(r => r.Status)
+
             .Include(r => r.Stops)
             .ThenInclude(s => s.Status)
             .ToListAsync();
 
         var dtos = routes.Select(route => new DeliveryRouteDto
         {
+            Id = route.Id,
             Name = route.Name,
             TotalDistanceKm = route.TotalDistanceKm,
             EstimatedDurationMinutes = route.EstimatedDurationMinutes,
             UserId = route.UserId,
+            AssignedUserId = route.AssignedUserId,
+
+            RouteStatusId = route.RouteStatusId,
+            StatusName = route.Status?.Name,
+            Stops = route.Stops.OrderBy(s => s.SequenceOrder).Select(s => new StopDto
+            {
+                Address = s.Address,
+                Latitude = s.Latitude,
+                Longitude = s.Longitude,
+                Sequence = s.SequenceOrder,
+                Status = s.Status != null ? new StopStatusDto { Name = s.Status.Name } : null
+            }).ToList()
+        }).ToList();
+
+        return Ok(dtos);
+    }
+
+    /// <summary>
+    /// Tildel en bruger til en eksisterende leveringsrute
+    /// </summary>
+    [HttpPut("{id}/assign")]
+    public async Task<ActionResult<DeliveryRouteDto>> AssignUserToRoute(int id, [FromBody] int assignedUserId)
+    {
+        var route = await _context.DeliveryRoutes
+            .Include(r => r.Status)
+            .Include(r => r.Stops)
+            .ThenInclude(s => s.Status)
+            .FirstOrDefaultAsync(r => r.Id == id);
+
+        if (route == null)
+        {
+            return NotFound($"Rute med ID {id} blev ikke fundet");
+        }
+
+        var assignedUser = await _context.Users.FindAsync(assignedUserId);
+        if (assignedUser == null)
+        {
+            return NotFound($"Bruger med ID {assignedUserId} blev ikke fundet");
+        }
+
+        route.AssignedUserId = assignedUserId;
+        await _context.SaveChangesAsync();
+
+        var resultDto = new DeliveryRouteDto
+        {
+            Id = route.Id,
+            Name = route.Name,
+            TotalDistanceKm = route.TotalDistanceKm,
+            EstimatedDurationMinutes = route.EstimatedDurationMinutes,
+            UserId = route.UserId,
+            AssignedUserId = route.AssignedUserId,
+
+            RouteStatusId = route.RouteStatusId,
+            StatusName = route.Status?.Name,
+            Stops = route.Stops.OrderBy(s => s.SequenceOrder).Select(s => new StopDto
+            {
+                Address = s.Address,
+                Latitude = s.Latitude,
+                Longitude = s.Longitude,
+                Sequence = s.SequenceOrder,
+                Status = s.Status != null ? new StopStatusDto { Name = s.Status.Name } : null
+            }).ToList()
+        };
+
+        return Ok(resultDto);
+    }
+
+    /// <summary>
+    /// Hent alle leveringsruter tildelt en specifik bruger (medarbejder)
+    /// </summary>
+    [HttpGet("assigned/{userId}")]
+    public async Task<ActionResult<List<DeliveryRouteDto>>> GetAssignedRoutes(int userId)
+    {
+        var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+        if (!userExists)
+        {
+            return NotFound($"Bruger med ID {userId} blev ikke fundet");
+        }
+
+        var routes = await _context.DeliveryRoutes
+            .Include(r => r.Status)
+
+            .Include(r => r.Stops)
+            .ThenInclude(s => s.Status)
+            .Where(r => r.AssignedUserId == userId)
+            .ToListAsync();
+
+        var dtos = routes.Select(route => new DeliveryRouteDto
+        {
+            Id = route.Id,
+            Name = route.Name,
+            TotalDistanceKm = route.TotalDistanceKm,
+            EstimatedDurationMinutes = route.EstimatedDurationMinutes,
+            UserId = route.UserId,
+            AssignedUserId = route.AssignedUserId,
+
             RouteStatusId = route.RouteStatusId,
             StatusName = route.Status?.Name,
             Stops = route.Stops.OrderBy(s => s.SequenceOrder).Select(s => new StopDto

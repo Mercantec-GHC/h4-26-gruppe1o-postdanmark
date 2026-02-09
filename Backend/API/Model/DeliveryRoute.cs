@@ -21,10 +21,12 @@ public class DeliveryRoute : Common
 
 public class DeliveryRouteDto
 {
+    public int Id { get; set; }
     public string? Name { get; set; }
     public double TotalDistanceKm { get; set; }
     public double EstimatedDurationMinutes { get; set; }
     public int UserId { get; set; }
+    public int? AssignedUserId { get; set; }
     public int RouteStatusId { get; set; }
     public string? StatusName { get; set; }
     public List<StopDto> Stops { get; set; } = new();
@@ -39,6 +41,8 @@ public class CreateDeliveryRouteDto
 {
     public required string Name { get; set; }
     public required int UserId { get; set; }
+    public int? AssignedUserId { get; set; }
     public List<CreateStopDto> Stops { get; set; } = new();
 }
+
 
