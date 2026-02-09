@@ -28,6 +28,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="createroutes"
+        options={{
+          title: "Opret rute",
+          tabBarButton: () => null,
+        }}
+      />
+      <Tabs.Screen
         name="deliveryroutes"
         options={{
           title: "Leveringsruter",

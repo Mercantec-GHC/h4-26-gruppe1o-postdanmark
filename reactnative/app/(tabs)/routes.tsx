@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
+import { useRouter } from 'expo-router';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { getUser, isAdmin } from '@/services/userStorage';
 
 // Route Overview screen to replace the old Explore tab
 export default function RouteOverviewScreen() {
+  const router = useRouter();
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const [routes, setRoutes] = useState([
     { id: 1, date: '1. januar 2026', stops: 12, completed: true },
     { id: 2, date: '2. januar 2026', stops: 15, completed: false },
@@ -15,9 +20,17 @@ export default function RouteOverviewScreen() {
     setRoutes(prev => prev.map(route => (route.id === id ? { ...route, completed: !route.completed } : route)));
   };
 
+  useEffect(() => {
+    getUser().then((user) => setIsAdminUser(user != null && isAdmin(user.role)));
+  }, []);
+
   const handleViewPress = (route: { id: number; date: string; stops: number; completed: boolean }) => {
     // TODO: Navigate to route details when available
     console.log('View route:', route);
+  };
+
+  const handleCreateRoute = () => {
+    router.push('/(tabs)/createroutes');
   };
 
   const RouteItem = ({ route }: { route: { id: number; date: string; stops: number; completed: boolean } }) => (
@@ -56,6 +69,15 @@ export default function RouteOverviewScreen() {
 
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Vælg dato for rute</Text>
+        {isAdminUser && (
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={handleCreateRoute}
+            accessibilityLabel="Opret ny rute"
+          >
+            <IconSymbol name="plus" size={28} color="#1976d2" />
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -73,6 +95,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
     backgroundColor: '#fff',
@@ -83,6 +108,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     color: '#333',
+  },
+  addButton: {
+    padding: 8,
   },
   scrollView: {
     flex: 1,

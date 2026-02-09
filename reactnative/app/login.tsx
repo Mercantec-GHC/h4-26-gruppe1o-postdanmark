@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { API_BASE } from "../services/config";
 import { playSoundEffect } from "../services/soundEffects";
 import { saveToken } from "../services/tokenStorage";
+import { saveUser } from "../services/userStorage";
 
 const LoginScreen: React.FC = () => {
   const router = useRouter();
@@ -84,12 +85,19 @@ const LoginScreen: React.FC = () => {
 
       
       
-      //Gør brug af tokenStorage til at gemme tokenet
       const data = await res.json();
       if (data.token) {
         await saveToken(data.token);
       }
-        playSoundEffect(require("../sound-effects/honk-honk.wav"));
+      if (data.user) {
+        await saveUser({
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          role: data.user.role ?? "Employee",
+        });
+      }
+      playSoundEffect(require("../sound-effects/honk-honk.wav"));
       router.replace("/(tabs)/routes");
     } catch (e: any) {
       console.error("Login error", e);
