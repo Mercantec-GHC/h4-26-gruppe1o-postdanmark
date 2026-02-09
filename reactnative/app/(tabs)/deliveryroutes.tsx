@@ -151,7 +151,11 @@ export default function DeliveryRoutesScreen() {
       <View style={styles.cardDetails}>
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Planlagt dato:</Text>
-          <Text style={styles.detailValue}>{new Date(item.scheduledDate).toLocaleDateString('da-DK')}</Text>
+          <Text style={styles.detailValue}>
+            {item.scheduledDate
+              ? item.scheduledDate.split('T')[0].split('-').reverse().join('-')
+              : 'Ikke planlagt'}
+          </Text>
         </View>
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Afstand:</Text>
