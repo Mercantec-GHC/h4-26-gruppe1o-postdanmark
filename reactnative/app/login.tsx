@@ -39,23 +39,51 @@ const LoginScreen: React.FC = () => {
         body: JSON.stringify({ email, password }),
       });
       // Error Message - Handling: Vi prøver at finde en pæn besked i svaret, ellers fallback til status
+      // TJEK OM SERVEREN SIGER "NEJ" (Fejl 400, 401, 500 osv.)
       if (!res.ok) {
-        const text = await res.text();
-        let errorMessage = text; // Start med at antage, det bare er tekst
 
-        // Prøv at se, om det er en "Gavepakke" (JSON)
+        // 1. Hent svaret som rå tekst først (Backup-løsning)
+        // Hvis serveren crasher helt, sender den måske bare tekst og ikke JSON.
+        const text = await res.text();
+        let errorMessage = text;
+
         try {
+          // 2. Prøv at pakke gaven ud (Er det JSON format?)
           const data = JSON.parse(text);
-          if (data && data.message) {
-            errorMessage = data.message; // BINGO! Vi fandt den pæne besked indeni
+
+          // CASE A: Dørmand 1 (Vores egen kode)
+          // Hvis backend siger: "Forkert password", ligger det her.
+          if (data.message) {
+            errorMessage = data.message;
+          }
+
+          // CASE B: Dørmand 2 (Systemets automatiske tjek)
+          // Hvis du skriver "dlkbvmd" i stedet for en legit email.
+          // Systemet sender en liste af fejl. Vi tager bare den allerførste fejl, vi kan finde.
+          else if (data.errors) {
+            // Find navnet på den første fejl (f.eks. "Email")
+            const firstErrorKey = Object.keys(data.errors)[0];
+
+            if (firstErrorKey) {
+              // Hent selve beskeden (f.eks. "Ugyldig email-adresse")
+              errorMessage = data.errors[firstErrorKey][0];
+            }
+          }
+          // CASE C: Sidste udvej (Generel titel)
+          // Hvis intet andet findes, tager vi titlen (f.eks. "One or more errors occurred").
+          else if (data.title) {
+            errorMessage = data.title;
           }
         } catch (e) {
-          // Hvis det ikke var JSON, så beholder vi bare den rå tekst
+          // 3. Hvis pakken IKKE kunne åbnes (ikke JSON), så gør vi ingenting.
+          // Vi beholder bare den rå tekst, vi hentede i trin 1.
         }
-
+        // 4. Stop op og kast fejlen videre til brugeren (Det røde tekstfelt)
         throw new Error(errorMessage || `Login failed (${res.status})`);
       }
 
+      
+      
       //Gør brug af tokenStorage til at gemme tokenet
       const data = await res.json();
       if (data.token) {
