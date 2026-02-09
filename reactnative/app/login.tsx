@@ -49,7 +49,7 @@ const LoginScreen: React.FC = () => {
         await saveToken(data.token);
       }
         playSoundEffect(require("../sound-effects/honk-honk.wav"));
-      router.replace("/(tabs)");
+      router.replace("/(tabs)/routes");
     } catch (e: any) {
       console.error("Login error", e);
       setError(e?.message || "Login failed");
