@@ -1,4 +1,4 @@
-﻿// components/DeliveryMap.native.tsx
+// components/DeliveryMap.native.tsx
 
 // 1. THE TOOLBOX 🧰
 // These are the raw materials we need to build the screen.
@@ -6,6 +6,7 @@ import { StyleSheet, View, Alert, Text, TouchableOpacity } from 'react-native'; 
 import MapView, { Marker, Polyline } from 'react-native-maps'; // The specific tools for Maps (The Map itself, Pins, and Lines).
 import { useState, useEffect, useRef } from 'react'; // The Brain: Memory (State), Automation (Effect), and Remote Control (Ref).
 import * as Location from 'expo-location'; // The Sensor: Allows us to talk to the phone's GPS chip.
+import { playSoundEffect } from '@/services/soundEffects';
 
 export default function DeliveryMap() {
 
@@ -60,6 +61,11 @@ export default function DeliveryMap() {
 
         // UI Logic: Close the pop-up card because the delivery is done.
         setSelectedStop(null);
+
+        // Play fanfare when all deliveries are complete
+        if (newStops.length === 0) {
+            playSoundEffect(require('@/sound-effects/fanfare.wav'));
+        }
 
         // Camera Logic: If there are stops left, fly the camera to the next one automatically.
         if (newStops.length > 0) {
@@ -128,8 +134,11 @@ export default function DeliveryMap() {
                         title={stop.title}
                         description={`This is stop number ${stop.id}`}
 
-                        // Interaction: When clicked, remember THIS specific stop
-                        onPress={() => setSelectedStop(stop)}
+                        // Interaction: When clicked, play bubble sound and remember THIS specific stop
+                        onPress={() => {
+                            playSoundEffect(require('@/sound-effects/bubble.wav'));
+                            setSelectedStop(stop);
+                        }}
                     />
                 ))}
             </MapView>
