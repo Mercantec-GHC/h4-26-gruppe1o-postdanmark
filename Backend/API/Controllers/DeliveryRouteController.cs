@@ -15,18 +15,15 @@ public class DeliveryRouteController : ControllerBase
     private readonly AppDBContext _context;
     private readonly IGeolocationService _geolocationService;
     private readonly IRoutingService _routingService;
-    private readonly ILogger<DeliveryRouteController> _logger;
 
     public DeliveryRouteController(
         AppDBContext context,
         IGeolocationService geolocationService,
-        IRoutingService routingService,
-        ILogger<DeliveryRouteController> logger)
+        IRoutingService routingService)
     {
         _context = context;
         _geolocationService = geolocationService;
         _routingService = routingService;
-        _logger = logger;
     }
 
     /// <summary>
@@ -83,22 +80,14 @@ public class DeliveryRouteController : ControllerBase
         int estimatedDurationMinutes = 0;
         var stops = new List<Stop>();
 
-        _logger.LogInformation("Stops count: {Count}", stopsWithCoords.Count);
-
         if (stopsWithCoords.Count >= 2)
         {
             var coordinates = stopsWithCoords
                 .Select(s => (s.Stop.Latitude, s.Stop.Longitude))
                 .ToList();
 
-            _logger.LogInformation("Calling routing service for optimization with {Count} coordinates", coordinates.Count);
-
             var routeResult = await _routingService.OptimizeRouteAsync(coordinates);
-            
-            _logger.LogInformation("Routing service returned: {Result}, Error: {Error}", 
-                routeResult != null ? "object" : "null", 
-                routeResult?.Error ?? "none");
-            
+
             if (routeResult != null && routeResult.Success)
             {
                 totalDistanceKm = routeResult.TotalDistanceKm;
@@ -113,14 +102,10 @@ public class DeliveryRouteController : ControllerBase
                     stops.Add(stop);
                 }
                 
-                _logger.LogInformation("Route optimized: {Distance} km, {Duration} min, Sequence: [{Seq}]", 
-                    totalDistanceKm, estimatedDurationMinutes, 
-                    string.Join(" -> ", stops.OrderBy(s => s.SequenceOrder).Select(s => s.Address)));
             }
             else
             {
                 // Fallback: brug original rækkefølge
-                _logger.LogWarning("Routing failed, using original order. Error: {Error}", routeResult?.Error);
                 for (int i = 0; i < stopsWithCoords.Count; i++)
                 {
                     stopsWithCoords[i].Stop.SequenceOrder = i + 1;
