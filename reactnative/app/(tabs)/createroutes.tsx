@@ -11,6 +11,9 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Modal,
+  Pressable,
+  FlatList,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { API_BASE } from '@/services/config';
@@ -29,6 +32,7 @@ export default function CreateRouteScreen() {
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -57,6 +61,9 @@ export default function CreateRouteScreen() {
       }
     })();
   }, []);
+
+  const selectedUser = users.find((u) => u.id === assignedUserId);
+  const assignedUserLabel = assignedUserId === null ? 'Vælg...' : (selectedUser?.name ?? 'Vælg...');
 
   const addAddress = () => setAddresses((prev) => [...prev, '']);
   const removeAddress = (index: number) => {
@@ -90,11 +97,13 @@ export default function CreateRouteScreen() {
       return;
     }
 
-    const dateMatch = scheduledDate.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    const dateMatch = scheduledDate.trim().match(/^(\d{2})-(\d{2})-(\d{4})$/);
     if (!dateMatch) {
-      Alert.alert('Fejl', 'Dato skal være i formatet ÅÅÅÅ-MM-DD (f.eks. 2026-02-15).');
+      Alert.alert('Fejl', 'Dato skal være i formatet DD-MM-ÅÅÅÅ (f.eks. 15-02-2026).');
       return;
     }
+    const [, day, month, year] = dateMatch;
+    const scheduledDateIso = `${year}-${month}-${day}`;
 
     setSubmitting(true);
     try {
@@ -107,7 +116,7 @@ export default function CreateRouteScreen() {
 
       const body = {
         Name: name.trim() || `Rute ${scheduledDate}`,
-        ScheduledDate: scheduledDate.trim(),
+        ScheduledDate: scheduledDateIso,
         UserId: currentUserId,
         AssignedUserId: assignedUserId ?? undefined,
         Stops: trimmedAddresses.map((Address) => ({ Address })),
@@ -168,12 +177,12 @@ export default function CreateRouteScreen() {
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Dato (ÅÅÅÅ-MM-DD)</Text>
+          <Text style={styles.label}>Dato (DD-MM-ÅÅÅÅ)</Text>
           <TextInput
             style={styles.input}
             value={scheduledDate}
             onChangeText={setScheduledDate}
-            placeholder="2026-02-15"
+            placeholder="15-02-2026"
             placeholderTextColor="#888"
           />
         </View>
@@ -183,29 +192,48 @@ export default function CreateRouteScreen() {
           {loadingUsers ? (
             <ActivityIndicator size="small" color="#1976d2" style={styles.loader} />
           ) : (
-            <View style={styles.pickerWrap}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pickerScroll}>
-                <TouchableOpacity
-                  style={[styles.pickerOption, assignedUserId === null ? styles.pickerOptionActive : null]}
-                  onPress={() => setAssignedUserId(null)}
-                >
-                  <Text style={[styles.pickerOptionText, assignedUserId === null ? styles.pickerOptionTextActive : null]}>
-                    Vælg...
-                  </Text>
-                </TouchableOpacity>
-                {users.map((u) => (
-                  <TouchableOpacity
-                    key={u.id}
-                    style={[styles.pickerOption, assignedUserId === u.id ? styles.pickerOptionActive : null]}
-                    onPress={() => setAssignedUserId(u.id)}
-                  >
-                    <Text style={[styles.pickerOptionText, assignedUserId === u.id ? styles.pickerOptionTextActive : null]}>
-                      {u.name}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
+            <>
+              <Pressable
+                style={styles.dropdownTrigger}
+                onPress={() => setUserDropdownOpen(true)}
+              >
+                <Text style={styles.dropdownTriggerText}>{assignedUserLabel}</Text>
+                <Text style={styles.dropdownChevron}>▼</Text>
+              </Pressable>
+              <Modal
+                visible={userDropdownOpen}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setUserDropdownOpen(false)}
+              >
+                <Pressable style={styles.dropdownBackdrop} onPress={() => setUserDropdownOpen(false)}>
+                  <View style={styles.dropdownModal}>
+                    <Text style={styles.dropdownModalTitle}>Vælg bruger</Text>
+                    <FlatList
+                      data={[{ id: null, name: 'Vælg...', email: '' }, ...users]}
+                      keyExtractor={(item) => (item.id === null ? '_none' : String(item.id))}
+                      renderItem={({ item }) => (
+                        <Pressable
+                          style={[styles.dropdownItem, assignedUserId === item.id && styles.dropdownItemActive]}
+                          onPress={() => {
+                            setAssignedUserId(item.id);
+                            setUserDropdownOpen(false);
+                          }}
+                        >
+                          <Text style={[styles.dropdownItemText, assignedUserId === item.id && styles.dropdownItemTextActive]}>
+                            {item.name}
+                          </Text>
+                        </Pressable>
+                      )}
+                      style={styles.dropdownList}
+                    />
+                    <TouchableOpacity style={styles.dropdownCloseBtn} onPress={() => setUserDropdownOpen(false)}>
+                      <Text style={styles.dropdownCloseBtnText}>Luk</Text>
+                    </TouchableOpacity>
+                  </View>
+                </Pressable>
+              </Modal>
+            </>
           )}
         </View>
 
@@ -333,33 +361,79 @@ const styles = StyleSheet.create({
     color: '#1976d2',
     fontWeight: '600',
   },
-  pickerWrap: {
+  dropdownTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#fff',
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e0e0e0',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     minHeight: 48,
-    justifyContent: 'center',
   },
-  pickerScroll: {
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-  },
-  pickerOption: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginRight: 8,
-  },
-  pickerOptionActive: {
-    backgroundColor: '#1976d2',
-  },
-  pickerOptionText: {
+  dropdownTriggerText: {
     fontSize: 16,
     color: '#333',
   },
-  pickerOptionTextActive: {
-    color: '#fff',
+  dropdownChevron: {
+    fontSize: 12,
+    color: '#666',
+  },
+  dropdownBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  dropdownModal: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    width: '100%',
+    maxWidth: 320,
+    maxHeight: '70%',
+    overflow: 'hidden',
+  },
+  dropdownModalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  dropdownList: {
+    maxHeight: 280,
+  },
+  dropdownItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  dropdownItemActive: {
+    backgroundColor: '#e3f2fd',
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  dropdownItemTextActive: {
+    color: '#1976d2',
+    fontWeight: '600',
+  },
+  dropdownCloseBtn: {
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  dropdownCloseBtnText: {
+    fontSize: 16,
+    color: '#1976d2',
     fontWeight: '600',
   },
   loader: {
