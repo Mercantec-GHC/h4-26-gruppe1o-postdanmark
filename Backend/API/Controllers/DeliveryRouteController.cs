@@ -73,8 +73,8 @@ public class DeliveryRouteController : ControllerBase
             }, i));
         }
 
-        // Hent standard "Pending" rute status
-        var routeStatus = await _context.RouteStatuses.FirstOrDefaultAsync(s => s.Name == "Pending")
+        // Hent standard "Assigned" rute status
+        var routeStatus = await _context.RouteStatuses.FirstOrDefaultAsync(s => s.Name == "Assigned")
             ?? await _context.RouteStatuses.FirstAsync();
 
         // Optimer rute og beregn afstand/varighed
