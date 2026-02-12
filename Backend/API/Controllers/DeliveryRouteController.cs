@@ -9,6 +9,7 @@ namespace API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 
 public class DeliveryRouteController : ControllerBase
 {
@@ -30,6 +31,7 @@ public class DeliveryRouteController : ControllerBase
     /// Opret en ny leveringsrute med stoppesteder. Adresser bliver automatisk geokodet til koordinater.
     /// </summary>
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<DeliveryRouteDto>> CreateDeliveryRoute([FromBody] CreateDeliveryRouteDto dto)
     {
         if (dto.Stops == null || dto.Stops.Count == 0)
@@ -306,6 +308,7 @@ public class DeliveryRouteController : ControllerBase
     /// Tildel en bruger til en eksisterende leveringsrute
     /// </summary>
     [HttpPut("{id}/assign")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<DeliveryRouteDto>> AssignUserToRoute(int id, [FromBody] int assignedUserId)
     {
         var route = await _context.DeliveryRoutes
