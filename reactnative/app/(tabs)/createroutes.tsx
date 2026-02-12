@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     color: '#333',
-    ...Platform.select({ web: { outlineStyle: 'none' as const }, default: {} }),
+    ...(Platform.select({ web: { outlineStyle: 'none' } as Record<string, unknown>, default: {} }) as object),
   },
   addressInput: {
     flex: 1,
