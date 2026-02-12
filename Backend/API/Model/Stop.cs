@@ -31,3 +31,8 @@ public class CreateStopDto
 {
     public required string Address { get; set; }
 }
+
+public class UpdateStopStatusDto
+{
+    public required int StopStatusId { get; set; }
+}
