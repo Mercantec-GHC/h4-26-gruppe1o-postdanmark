@@ -1,0 +1,5 @@
+{
+  "title": "Brugerguide",
+  "description": "Sådan bruger du appen – uden at skulle forstå kode.",
+  "pages": ["getting-started", "login-and-account", "viewing-routes", "creating-routes", "updating-stop-status"]
+}

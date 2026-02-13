@@ -1,0 +1,87 @@
+---
+title: Deployment (Docker)
+description: Docker, docker-compose og miljøvariabler.
+---
+
+# Deployment (Docker)
+
+Projektet kan køres med **Docker** og **docker-compose**. Der findes også en ældre beskrivelse med Nginx og Flutter i `Docker.md` i repo-roden; her fokuseres på den aktuelle `docker-compose.yaml`.
+
+## docker-compose.yaml (rod)
+
+```yaml
+services:
+  backend:
+    build: ./Backend (Dockerfile: API/Dockerfile)
+    ports: "4010:5000"
+    env_file: .env
+    environment: ASPNETCORE_URLS, ASPNETCORE_ENVIRONMENT=Production
+
+  frontend:
+    build: ./reactnative (Dockerfile)
+    ports: "4011:80"
+    depends_on: backend
+```
+
+- **Backend:** .NET API kører på port 5000 i containeren, eksponeret som **4010** på host.
+- **Frontend:** React Native-app bygget til web, serveret (typisk Nginx) på port 80 i containeren, eksponeret som **4011** på host.
+
+Begge er på samme `app-network`.
+
+## Miljøvariabler (.env)
+
+Opret en **.env**-fil i repo-roden (den bruges af `backend` via `env_file: .env`). Eksempel:
+
+```text
+ConnectionStrings__DefaultConnection=Host=db;Database=postdanmark;Username=postgres;Password=...
+JWT__SECRET_KEY=din-hemmelige-nøgle-min-32-tegn
+JWT__ISSUER=postdanmark-api
+JWT__AUDIENCE=postdanmark-client
+```
+
+Hvis PostgreSQL kører i en separat container, skal den være på samme network og hostnavnet (fx `db`) matche connection string. Til simpel lokal kørsel kan du bruge `Host=host.docker.internal` og en lokal PostgreSQL.
+
+## Kommandoer
+
+```bash
+# Byg og start
+docker-compose up -d
+
+# Logs
+docker-compose logs -f
+
+# Stop
+docker-compose down
+```
+
+## Frontend-URL efter deploy
+
+Efter deploy skal **React Native-appen** vide, hvor API'et er. I `reactnative/services/config.ts` sættes `API_BASE`. Ved Docker kan det være:
+
+- Samme domæne med path (fx `https://ditdomæne.dk/api`) – kræver reverse proxy.
+- Eller direkte backend-URL (fx `https://postdanmark-api.mercantec.tech`).
+
+Hvis frontend kører på `https://frontend.example.com` og backend på `https://api.example.com`, skal `API_BASE` være `https://api.example.com` (uden trailing slash), og CORS på backend skal tillade `https://frontend.example.com`.
+
+## Nginx / reverse proxy (valgfrit)
+
+`Docker.md` og `nginx.conf` i repo beskriver et setup med Nginx som reverse proxy (fx `/` → Flutter, `/api/` → backend). For den nuværende compose med kun backend + frontend kan du:
+
+- Tilpasse `nginx.conf` til at serve frontend på `/` og proxy `/api/` til backend-containeren, eller
+- Køre kun de to services og sætte API_BASE i frontend til backend-URL.
+
+## Cloudflare Tunnel (fra Docker.md)
+
+For adgang udefra uden at åbne porte kan Cloudflare Tunnel bruges: installer `cloudflared`, opret tunnel i Cloudflare, peg på serverens port. HTTPS håndteres af Cloudflare.
+
+## Health checks
+
+- Backend: Tjek fx `/health` eller `/swagger` hvis tilgængeligt.
+- Frontend: Tjek at root URL returnerer 200.
+
+## Kort opsummering
+
+1. Sæt **.env** med connection string og JWT.
+2. Kør **docker-compose up -d**.
+3. Sæt **API_BASE** i frontend (ved build-time eller runtime) til backend-URL.
+4. Evt. sæt Nginx/Cloudflare op som beskrevet i `Docker.md`.
