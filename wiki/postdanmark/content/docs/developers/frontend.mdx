@@ -1,0 +1,84 @@
+---
+title: Frontend (React Native)
+description: React Native (Expo) – struktur, faner, config og auth.
+---
+
+# Frontend (React Native)
+
+Frontend er en **React Native**-app med **Expo**, der kan køre på mobil og web. Den taler med .NET API via REST og gemmer JWT i sikker lagring.
+
+## Projektstruktur
+
+```
+reactnative/
+├── app/                    # Expo Router – sider
+│   ├── _layout.tsx         # Root layout
+│   ├── index.tsx           # Entry / redirect
+│   ├── login.tsx           # Log ind
+│   ├── register.tsx        # Opret bruger
+│   ├── modal.tsx
+│   └── (tabs)/
+│       ├── _layout.tsx     # Tab bar (Ruter, Opret rute skjult, Leveringsruter, Kort)
+│       ├── routes.tsx      # Ruter (oversigt, + opret for admin)
+│       ├── createroutes.tsx # Opret rute (navn, dato, tildelt bruger, adresser)
+│       ├── deliveryroutes.tsx # Mine tildelte ruter (GET assigned/{userId})
+│       └── index.tsx       # Kort
+├── components/
+│   ├── DeliveryMap.native.tsx  # Kort til native
+│   ├── DeliveryMap.web.tsx     # Kort til web
+│   └── ui/
+├── services/
+│   ├── config.ts           # API_BASE URL (fx https://postdanmark-api.mercantec.tech)
+│   ├── tokenStorage.ts    # Gem/hent JWT
+│   ├── userStorage.ts     # Gem/hent bruger (id, name, role) + isAdmin()
+│   └── soundEffects.ts
+├── constants/theme.ts
+└── package.json
+```
+
+## Faner (tabs)
+
+Defineret i `app/(tabs)/_layout.tsx`:
+
+| Route | Titel | Beskrivelse |
+|-------|--------|-------------|
+| `routes` | Ruter | Oversigt over ruter; admin ser + til "Opret rute". |
+| `createroutes` | Opret rute | Skjult i tab bar (`tabBarButton: () => null`); åbnes via + på Ruter. |
+| `deliveryroutes` | Leveringsruter | Liste over ruter tildelt den indloggede bruger (GET `/api/DeliveryRoute/assigned/{userId}`). |
+| `index` | Kort | Kortvisning. |
+
+## Konfiguration
+
+- **API-URL:** I `services/config.ts` sættes `API_BASE` (fx `https://postdanmark-api.mercantec.tech`). Skift til din backend-URL ved lokal kørsel eller andet miljø.
+
+## Auth-flow
+
+1. **Login:** `login.tsx` sender POST til `/api/Auth/login` med `{ email, password }`. Ved succes gemmes `token` via `saveToken()` og brugerinfo via `saveUser()`.
+2. **Authenticated requests:** `getToken()` fra `tokenStorage` bruges til `Authorization: Bearer <token>` på alle kald der kræver login (fx User, DeliveryRoute, StopStatus).
+3. **Bruger-ID:** I `deliveryroutes.tsx` hentes userId fra JWT (payload decode) og bruges i `GET /api/DeliveryRoute/assigned/{userId}`.
+4. **Admin-check:** `userStorage.isAdmin(user.role)` bruges til at vise/skjule "Opret rute" (fx + på Ruter).
+
+## Opret rute (createroutes)
+
+- Henter brugerliste: GET `/api/User` med Bearer token.
+- Dropdown til "Tildelt bruger" (assignedUserId).
+- Liste af adressefelter; submit sender POST `/api/DeliveryRoute` med `CreateDeliveryRouteDto`: name, scheduledDate, userId (current user), assignedUserId, stops: `[{ address }]`. Dato sendes som `YYYY-MM-DD` (konverteres fra DD-MM-YYYY i UI).
+
+## Leveringsruter (deliveryroutes)
+
+- `fetchRoutes`: getToken() → decode JWT for userId → GET `/api/DeliveryRoute/assigned/${userId}`.
+- Pull-to-refresh og liste med rutedetaljer; navigation til rutedetaljer/kort efter behov.
+
+## Kort (DeliveryMap)
+
+- `DeliveryMap.native.tsx` og `DeliveryMap.web.tsx` viser rute og stop (fx med React Native Maps / web map library). Koordinater kommer fra `DeliveryRouteDto.stops` (latitude, longitude, sequence).
+
+## Kørsel
+
+```bash
+cd reactnative
+npm install
+npx expo start
+```
+
+Vælg web eller mobil fra Expo. Sørg for at `config.ts` peger på den backend, du bruger (lokalt eller Mercantec).

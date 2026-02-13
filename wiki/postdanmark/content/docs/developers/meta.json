@@ -1,0 +1,5 @@
+{
+  "title": "Udviklerguide",
+  "description": "Arkitektur, backend, frontend og deployment.",
+  "pages": ["architecture", "backend", "frontend", "deployment"]
+}

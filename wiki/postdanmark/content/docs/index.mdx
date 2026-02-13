@@ -1,0 +1,37 @@
+---
+title: Post Danmark
+description: Dokumentation for Post Danmark leveringsrute-appen – både for brugere og udviklere.
+---
+
+# Velkommen til Post Danmark Wiki
+
+Dette er dokumentationen for **Post Danmark leveringsrute-appen** – en mobil- og webløsning til at planlægge, tildele og køre leveringsruter med stoppesteder.
+
+## Hvad er appen?
+
+Appen gør det muligt for:
+
+- **Administratorer** at oprette leveringsruter med adresser, tildele dem til medarbejdere og se oversigt over ruter.
+- **Medarbejdere** at se deres tildelte ruter, følge ruten på et kort og opdatere status for hvert stop (fx "Afleveret" eller "Mislykket").
+
+Ruter bliver automatisk **geokodet** (adresser → koordinater) og **optimeret** (bedste rækkefølge og estimeret køretid), så chaufførerne får en effektiv rute.
+
+## Hurtig navigation
+
+<Cards>
+  <Card title="Brugerguide" href="/docs/user-guide/getting-started" description="Kom i gang som bruger – login, ruter og stop-status" />
+  <Card title="Udviklerguide" href="/docs/developers/architecture" description="Arkitektur, backend, frontend og deployment" />
+  <Card title="Design & arkitektur" href="/docs/design/overview" description="Systemdesign, roller og dataflow" />
+</Cards>
+
+## Teknisk overblik
+
+| Del | Teknologi |
+|-----|-----------|
+| **Backend** | .NET (C#) Web API, PostgreSQL, JWT-auth |
+| **Frontend** | React Native (Expo) – mobil og web |
+| **Geokodning** | OpenStreetMap Nominatim |
+| **Ruteoptimering** | OSRM (Open Source Routing Machine) |
+| **Deployment** | Docker, docker-compose |
+
+Hvis du **ikke er programmør**, er **Brugerguide** stedet at starte. Hvis du **sætter systemet op eller udvider det**, brug **Udviklerguide** og **Design**.

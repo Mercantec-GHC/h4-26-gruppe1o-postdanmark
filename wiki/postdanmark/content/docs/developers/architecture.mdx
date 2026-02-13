@@ -1,0 +1,51 @@
+---
+title: Arkitektur
+description: Overblik over systemets opbygning – backend, frontend og eksterne tjenester.
+---
+
+# Arkitektur
+
+## Højniveau-overblik
+
+```
+┌─────────────────────┐     HTTPS      ┌─────────────────────┐
+│  React Native app   │ ◄────────────► │   .NET Web API     │
+│  (Expo / mobil/web) │   JWT, REST    │   (Backend)        │
+└─────────────────────┘                └─────────┬───────────┘
+                                                │
+                        ┌───────────────────────┼───────────────────────┐
+                        │                       │                       │
+                        ▼                       ▼                       ▼
+               ┌────────────────┐      ┌────────────────┐      ┌────────────────┐
+               │   PostgreSQL   │      │ Nominatim      │      │ OSRM           │
+               │   (database)   │      │ (geocoding)    │      │ (routing)      │
+               └────────────────┘      └────────────────┘      └────────────────┘
+```
+
+- **Frontend:** React Native (Expo) – én kodebase til mobil og web. Kommunikerer med backend via REST og JWT i `Authorization`-headeren.
+- **Backend:** .NET Web API – authentication (JWT), CRUD for brugere og ruter, geokodning og ruteoptimering.
+- **Database:** PostgreSQL – brugere, roller, ruter, stop, statusser.
+- **Eksterne tjenester:** OpenStreetMap Nominatim (adresse → koordinater), OSRM (ruteoptimering og afstand/varighed).
+
+## Datastrøm
+
+1. **Opret rute (admin):** Bruger indtaster adresser → API modtager `CreateDeliveryRouteDto` → for hver adresse kaldes GeolocationService (Nominatim) → RoutingService (OSRM) optimerer rækkefølge → rute og stop gemmes i DB → API returnerer `DeliveryRouteDto`.
+2. **Se ruter (medarbejder):** App henter JWT ved login → ved hvert kald sendes `Authorization: Bearer <token>` → API returnerer ruter for `assignedUserId` (udtrukket fra token eller path).
+3. **Opdater stop-status:** App sender `PUT /api/StopStatus/stop/{stopId}` med `{ "stopStatusId": 2 }` (fx 2 = Delivered) → backend opdaterer stop i DB og returnerer opdateret `StopDto`.
+
+## Vigtige mapper i repo
+
+| Sti | Indhold |
+|-----|---------|
+| `Backend/API/` | .NET Web API – Controllers, Model, Data (DbContext), Services, Program.cs |
+| `Backend/API/Controllers/` | AuthController, DeliveryRouteController, StopStatusController, UserController |
+| `Backend/API/Services/` | JwtService, GeolocationService (Nominatim), RoutingService (OSRM) |
+| `reactnative/` | React Native (Expo) – app/, components/, services/ (config, tokenStorage, userStorage) |
+| `wiki/postdanmark/` | Fumadocs-wiki (Next.js) – dokumentation |
+| `docker-compose.yaml` | Backend + frontend (reactnative bygget til web) i Docker |
+
+## Næste skridt
+
+- [Backend](/docs/developers/backend) – API-endpoints, modeller, miljøvariabler.
+- [Frontend](/docs/developers/frontend) – React Native-app, faner, config og auth.
+- [Deployment](/docs/developers/deployment) – Docker, docker-compose og miljø.

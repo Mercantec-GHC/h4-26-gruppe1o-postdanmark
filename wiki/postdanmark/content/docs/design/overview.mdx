@@ -1,0 +1,48 @@
+---
+title: Design og systemoverblik
+description: Roller, dataflow og beslutninger i systemet.
+---
+
+# Design og systemoverblik
+
+## Roller
+
+| Rolle | Beskrivelse | Typiske rettigheder i appen |
+|-------|-------------|-----------------------------|
+| **Admin** | Administrator | Oprette ruter, tildele bruger, se alle ruter, brugerliste. |
+| **Employee** | Medarbejder / chauffør | Se tildelte ruter, opdatere stop-status, se kort. |
+
+Roller styres i databasen (tabel `Role`) og knyttes til bruger via `User.RoleId`. JWT indeholder role-claim, så frontend kan vise/skjule fx "Opret rute" for ikke-admins.
+
+## Dataflow – Opret rute
+
+1. Admin vælger **rutenavn**, **dato**, **tildelt bruger** og en liste af **adresser**.
+2. Frontend sender **POST** `/api/DeliveryRoute` med `CreateDeliveryRouteDto`.
+3. Backend for hver adresse:
+   - Kalder **GeolocationService** (Nominatim) → (latitude, longitude).
+4. Backend kalder **RoutingService** (OSRM) med alle koordinater → får optimeret rækkefølge, total afstand (km) og estimeret varighed (min).
+5. Backend opretter **DeliveryRoute** og **Stop**-rækker i DB (med RouteStatus fx "Pending", StopStatus fx "Scheduled").
+6. API returnerer **DeliveryRouteDto** med alle stop og koordinater.
+7. Frontend kan vise ruten på kort eller redirecte til ruteoversigt.
+
+## Dataflow – Se og opdater ruter
+
+- **Medarbejder:** Frontend henter userId fra JWT → **GET** `/api/DeliveryRoute/assigned/{userId}` → viser liste. Ved valg af rute kan der hentes **GET** `/api/DeliveryRoute/{id}` til kort/detaljer.
+- **Opdater stop:** Bruger vælger nyt status (fx Delivered) → **PUT** `/api/StopStatus/stop/{stopId}` med `{ "stopStatusId": 2 }` → backend opdaterer `Stop.StopStatusId` og returnerer opdateret StopDto.
+
+## Designvalg
+
+- **Geokodning:** OpenStreetMap Nominatim (gratis, ingen API-nøgle). Begrænsninger: rate limits, kun adresser Nominatim kender.
+- **Ruteoptimering:** OSRM (open source). Bruger public demo (`router.project-osrm.org`) i koden – til produktion bør du overveje egen OSRM-instans eller anden provider.
+- **Auth:** JWT med hemmelig nøgle, role i token. Ingen refresh-token i den beskrevne flow – ved udløb skal bruger logge ind igen.
+- **Frontend:** Én React Native-kodebase (Expo) til mobil og web for at spare vedligehold; platform-specifikke komponenter (fx `DeliveryMap.native.tsx` vs `DeliveryMap.web.tsx`) hvor nødvendigt.
+
+## Entity-relation (kort)
+
+- **User** 1–N **DeliveryRoute** (ejer: UserId).
+- **User** 1–N **DeliveryRoute** (tildelt: AssignedUserId).
+- **DeliveryRoute** N–1 **RouteStatus**; 1–N **Stop**.
+- **Stop** N–1 **StopStatus**.
+- **User** N–1 **Role**.
+
+Se [Backend](/docs/developers/backend) for præcise modeller og endpoints.

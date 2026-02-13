@@ -1,0 +1,34 @@
+---
+title: Opret rute (administrator)
+description: Sådan opretter du en ny leveringsrute og tildeler den til en medarbejder.
+---
+
+# Opret rute (administrator)
+
+Kun brugere med **administrator**-rolle kan oprette nye leveringsruter. Hvis du ikke ser muligheden for at oprette rute, er din bruger sandsynligvis "Medarbejder".
+
+## Sådan opretter du en rute
+
+1. Gå til fanen **Ruter** og tryk på **+** (Opret ny rute), eller åbn **Opret rute** der hvor appen viser den.
+2. Udfyld felterne:
+   - **Rutenavn** – et genkendeligt navn (fx "Rute Nord 13. feb").
+   - **Dato** – den dag ruten skal køres (format: DD-MM-ÅÅÅÅ).
+   - **Tildelt bruger** – vælg den medarbejder, der skal køre ruten (vælges fra en liste).
+   - **Adresser** – tilføj mindst én adresse. Du kan tilføje flere felter og indtaste én adresse per stop.
+3. Tryk **Opret** / **Gem**.
+
+## Hvad sker der i systemet?
+
+Når du opretter ruten:
+
+1. **Geokodning** – Hver adresse oversættes til koordinater (latitude/longitude) så ruten kan vises på kort.
+2. **Ruteoptimering** – Systemet finder en god rækkefølge for stoppestederne og beregner samlet køreafstand og -tid.
+3. **Gemmes** – Ruten og alle stop gemmes og er knyttet til den valgte medarbejder.
+
+Den tildelte medarbejder kan herefter se ruten under **Leveringsruter** og på **Kort**.
+
+## Tips
+
+- Skriv **fulde adresser** (gade, husnummer, postnummer og evt. by) for bedre geokodning.
+- Du behøver **ikke** sætte stoppene i den rigtige køreprækkefølge – systemet optimerer rækkefølgen.
+- Hvis en adresse ikke kan findes, viser appen en fejl – ret eller fjern den pågældende adresse og prøv igen.

@@ -1,0 +1,98 @@
+---
+title: Backend (API)
+description: .NET Web API – endpoints, modeller, services og konfiguration.
+---
+
+# Backend (API)
+
+Backend er en **.NET Web API** (C#) med Entity Framework Core mod **PostgreSQL**, JWT-authentication og integration til **Nominatim** (geokodning) og **OSRM** (ruteoptimering).
+
+## Projektstruktur
+
+```
+Backend/API/
+├── Controllers/     # Auth, DeliveryRoute, StopStatus, User
+├── Data/            # AppDbContext, migrations
+├── Model/           # Entities og DTOs (User, DeliveryRoute, Stop, Role, RouteStatus, StopStatus)
+├── Services/        # JwtService, GeolocationService, RoutingService, PasswordHelper
+├── Program.cs       # DI, DbContext, JWT, CORS, Swagger
+├── appsettings.*.json
+└── Dockerfile
+```
+
+## API-endpoints (overblik)
+
+### Auth (`/api/Auth`)
+
+| Metode | Path | Beskrivelse |
+|--------|------|--------------|
+| POST | `/api/Auth/register` | Opret bruger (body: name/username, email, password). Default rolle: Employee. |
+| POST | `/api/Auth/login` | Login (body: email, password). Returnerer JWT + user (id, name, email, role). |
+
+### User (`/api/User`)
+
+| Metode | Path | Beskrivelse |
+|--------|------|--------------|
+| GET | `/api/User` | Hent alle brugere (kræver typisk JWT). Bruges til dropdown ved "Tildelt bruger". |
+
+### DeliveryRoute (`/api/DeliveryRoute`)
+
+| Metode | Path | Beskrivelse |
+|--------|------|--------------|
+| POST | `/api/DeliveryRoute` | Opret rute (CreateDeliveryRouteDto: name, scheduledDate, userId, assignedUserId?, stops[]). Geokoder og optimerer. |
+| GET | `/api/DeliveryRoute/{id}` | Hent én rute inkl. stop og statusser. |
+| GET | `/api/DeliveryRoute` | Hent alle ruter. |
+| GET | `/api/DeliveryRoute/user/{userId}` | Ruter ejet af bruger (userId). |
+| GET | `/api/DeliveryRoute/assigned/{userId}` | Ruter tildelt bruger (assignedUserId) – brugt af appen til "Leveringsruter". |
+| PUT | `/api/DeliveryRoute/{id}/assign` | Tildel bruger til rute (body: assignedUserId som tal). |
+
+### StopStatus (`/api/StopStatus`)
+
+| Metode | Path | Beskrivelse |
+|--------|------|--------------|
+| GET | `/api/StopStatus` | Liste over stop-statusser (fx Scheduled, Delivered, Failed). |
+| GET | `/api/StopStatus/stop/{stopId}` | Hent stop inkl. status. |
+| PUT | `/api/StopStatus/stop/{stopId}` | Opdater stop-status (body: `{ "stopStatusId": 1 }`). 1=Scheduled, 2=Delivered, 3=Failed (afhænger af seed). |
+
+## Modeller (kernen)
+
+- **User:** Name, Email, Password (hashet), RoleId, LastLogin.
+- **Role:** Name (Admin, Employee). Seeded i DB.
+- **DeliveryRoute:** Name, ScheduledDate, TotalDistanceKm, EstimatedDurationMinutes, UserId (ejer), AssignedUserId (chauffør), RouteStatusId, Stops.
+- **RouteStatus:** Name (fx Pending, InProgress, Completed). Seeded.
+- **Stop:** Address, Latitude, Longitude, SequenceOrder, RouteId, StopStatusId.
+- **StopStatus:** Name (Scheduled, Delivered, Failed). Seeded.
+
+DTOs bruges over wire (fx `CreateDeliveryRouteDto`, `DeliveryRouteDto`, `StopDto`, `UpdateStopStatusDto`).
+
+## Services
+
+- **JwtService:** Genererer JWT med userId og role claims. Bruges ved login.
+- **GeolocationService:** `GetCoordinatesFromAddressAsync(address)` – kalder Nominatim, returnerer (Lat, Lon) eller null.
+- **RoutingService:** `OptimizeRouteAsync(coordinates)` – kalder OSRM, returnerer rækkefølge, total distance (km) og estimated duration (min).
+- **PasswordHelper:** Hash/verify adgangskode (typisk bcrypt eller lign.).
+
+## Miljø / konfiguration
+
+Backend forventer blandt andet:
+
+- **ConnectionStrings:DefaultConnection** – PostgreSQL connection string.
+- **Jwt:SecretKey** (eller `JWT__SECRET_KEY`) – hemmelig nøgle til JWT-signering.
+- **Jwt:Issuer** / **Jwt:Audience** – valgfrit; default "postdanmark-api" / "postdanmark-client".
+
+CORS er sat til at tillade frontend-origins (fx Flutter/React Native URLs). Se `Program.cs` for de eksakte origins.
+
+## Kørsel lokalt
+
+Fra repo-rod:
+
+```bash
+cd Backend
+dotnet run --project API
+```
+
+Sørg for PostgreSQL kører og at `appsettings.Development.json` eller miljøvariabler sætter connection string og JWT. API kører typisk på `http://localhost:5000` (eller port fra launchSettings).
+
+## Swagger / OpenAPI
+
+Når appen kører, er Swagger UI typisk tilgængelig på fx `/swagger` – brug det til at teste endpoints.
