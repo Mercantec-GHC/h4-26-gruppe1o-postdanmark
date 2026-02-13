@@ -11,3 +11,8 @@ public class RouteStatusDto
 {
     public required string Name { get; set; }
 }
+
+public class UpdateRouteStatusDto
+{
+    public required int RouteStatusId { get; set; }
+}
