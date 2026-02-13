@@ -24,15 +24,6 @@ services:
     networks:
       - app-network
 
-  wiki:
-    build:
-      context: ./wiki/postdanmark
-      dockerfile: Dockerfile
-    ports:
-      - "4012:4012"
-    networks:
-      - app-network
-
 networks:
   app-network:
     driver: bridge
