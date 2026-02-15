@@ -8,7 +8,46 @@ import { useState, useEffect, useRef } from 'react'; // The Brain: Memory (State
 import * as Location from 'expo-location'; // The Sensor: Allows us to talk to the phone's GPS chip.
 import { playSoundEffect } from '@/services/soundEffects';
 
-export default function DeliveryMap() {
+// Stop format when passed from the delivery routes screen (API shape)
+export interface RouteStopInput {
+    address: string;
+    latitude: number;
+    longitude: number;
+    sequence: number;
+}
+
+// Internal stop format used by the map (id, title, lat, lng)
+interface MapStop {
+    id: number;
+    title: string;
+    lat: number;
+    lng: number;
+}
+
+function routeStopsToMapStops(routeStops: RouteStopInput[]): MapStop[] {
+    return routeStops
+        .sort((a, b) => a.sequence - b.sequence)
+        .map((stop, index) => ({
+            id: stop.sequence ?? index + 1,
+            title: stop.address || `Stop ${index + 1}`,
+            lat: stop.latitude,
+            lng: stop.longitude,
+        }));
+}
+
+// Default fallback when no route is selected (same as previous hardcoded data)
+const DEFAULT_STOPS: MapStop[] = [
+    { id: 1, title: "Stop 1", lat: 57.00569, lng: 9.88305 },
+    { id: 2, title: "Stop 2", lat: 57.03934, lng: 9.90931 },
+    { id: 3, title: "Stop 3", lat: 57.03472, lng: 9.85347 },
+];
+
+interface DeliveryMapProps {
+    /** When user selects a route on the delivery routes page, these stops are passed here. */
+    initialStops?: RouteStopInput[] | null;
+}
+
+export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
 
     // 2. THE BRAIN (STATE & MEMORY) 🧠
 
@@ -21,15 +60,26 @@ export default function DeliveryMap() {
 
     // Memory: "Which pin did the user just click on?"
     // Starts as null because nothing is clicked yet.
-    const [selectedStop, setSelectedStop] = useState<any>(null);
+    const [selectedStop, setSelectedStop] = useState<MapStop | null>(null);
 
     // Memory: The List of Packages (The Manifest).
-    // Currently fake data, but this is where the Database data will live later.
-    const [stops, setStops] = useState([
-        { id: 1, title: "Stop 1", lat: 57.00569, lng: 9.88305 }, // Skalborg
-        { id: 2, title: "Stop 2", lat: 57.03934, lng: 9.90931 }, // Aalborg Universitets Hospital
-        { id: 3, title: "Stop 3", lat: 57.03472, lng: 9.85347 }, // Aeblevangsskoven 
-    ]);
+    // Uses addresses from the selected route when provided; otherwise fallback to default locations.
+    const [stops, setStops] = useState<MapStop[]>(() =>
+        initialStops && initialStops.length > 0
+            ? routeStopsToMapStops(initialStops)
+            : DEFAULT_STOPS
+    );
+
+    // When the user selects a different route on the delivery routes page, update the map stops.
+    useEffect(() => {
+        if (initialStops && initialStops.length > 0) {
+            setStops(routeStopsToMapStops(initialStops));
+            setSelectedStop(null);
+        } else {
+            setStops(DEFAULT_STOPS);
+            setSelectedStop(null);
+        }
+    }, [initialStops]);
 
     // 3. THE ROBOT (EFFECTS) 🤖
     // This runs automatically exactly ONE time when the app starts (because of the empty [] at the end).
@@ -52,6 +102,7 @@ export default function DeliveryMap() {
     // 4. THE ACTIONS (FUNCTIONS) ⚡
     // This happens when the user clicks the "Deliver Package" button.
     const finishDelivery = () => {
+        if (!selectedStop) return;
         // Logic: Create a NEW list that keeps everyone EXCEPT the one we just finished.
         const newStops = stops.filter(stop => stop.id !== selectedStop.id);
 

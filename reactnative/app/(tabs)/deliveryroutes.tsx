@@ -150,9 +150,24 @@ export default function DeliveryRoutesScreen() {
     }
   };
 
+  // Navigerer til kort-fanen med rutens stop så kortet viser adresserne
+  const handleRoutePress = (item: DeliveryRoute) => {
+    if (item.stops && item.stops.length > 0) {
+      router.push({
+        pathname: '/(tabs)/map',
+        params: { stops: JSON.stringify(item.stops) },
+      } as unknown as Parameters<typeof router.push>[0]);
+    }
+  };
+
   // Renderer et enkelt rute-kort i listen
   const renderRoute = ({ item }: { item: DeliveryRoute }) => (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => handleRoutePress(item)}
+      activeOpacity={0.8}
+      disabled={!item.stops || item.stops.length === 0}
+    >
       {/* Kort-header med rutenavn og statusbadge */}
       <View style={styles.cardHeader}>
         <Text style={styles.routeName}>{item.name}</Text>
@@ -204,7 +219,7 @@ export default function DeliveryRoutesScreen() {
             ))}
         </View>
       )}
-    </View>
+    </TouchableOpacity>
   );
 
   // Vis indlæsningsindikator mens data hentes

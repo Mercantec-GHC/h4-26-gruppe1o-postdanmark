@@ -1,11 +1,33 @@
-﻿// components/DeliveryMap.web.tsx
+// components/DeliveryMap.web.tsx
 
 // 1. THE TOOLBOX 🧰
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native'; // Standard UI blocks
 import * as Location from 'expo-location'; // The GPS Tool
+import type { RouteStopInput } from './DeliveryMap.native';
 
-export default function DeliveryMap() {
+function routeStopsToMapStops(routeStops: RouteStopInput[]) {
+    return routeStops
+        .sort((a, b) => a.sequence - b.sequence)
+        .map((stop, index) => ({
+            id: stop.sequence ?? index + 1,
+            title: stop.address || `Stop ${index + 1}`,
+            lat: stop.latitude,
+            lng: stop.longitude,
+        }));
+}
+
+const DEFAULT_STOPS = [
+    { id: 1, title: "Stop 1", lat: 57.00569, lng: 9.88305 },
+    { id: 2, title: "Stop 2", lat: 57.03934, lng: 9.90931 },
+    { id: 3, title: "Stop 3", lat: 57.03472, lng: 9.85347 },
+];
+
+interface DeliveryMapProps {
+    initialStops?: RouteStopInput[] | null;
+}
+
+export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
 
     // 2. THE BRAIN (STATE & MEMORY) 🧠
 
@@ -21,12 +43,18 @@ export default function DeliveryMap() {
     // Memory: Where is the user right now?
     const [userLocation, setUserLocation] = useState<any>(null);
 
-    // Memory: The List of Packages (The Manifest)
-    const [stops, setStops] = useState([
-        { id: 1, title: "Stop 1", lat: 57.00569, lng: 9.88305 }, // Skalborg
-        { id: 2, title: "Stop 2", lat: 57.03934, lng: 9.90931 }, // Aalborg UH
-        { id: 3, title: "Stop 3", lat: 57.03472, lng: 9.85347 }, // Aeblevangsskoven 
-    ]);
+    // Memory: The List of Packages (The Manifest). Uses route stops when provided.
+    const [stops, setStops] = useState(() =>
+        initialStops && initialStops.length > 0 ? routeStopsToMapStops(initialStops) : DEFAULT_STOPS
+    );
+
+    useEffect(() => {
+        if (initialStops && initialStops.length > 0) {
+            setStops(routeStopsToMapStops(initialStops));
+        } else {
+            setStops(DEFAULT_STOPS);
+        }
+    }, [initialStops]);
 
     // Helper: Convert the list of stops into simple coordinates for the blue line
     const positions = stops.map(stop => [stop.lat, stop.lng] as [number, number]);
