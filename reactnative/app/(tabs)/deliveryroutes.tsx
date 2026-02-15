@@ -278,7 +278,7 @@ export default function DeliveryRoutesScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Mine Leveringsruter</Text>
+          <Text style={styles.headerTitle}>Leveringsruter</Text>
           {isAdminUser && (
             <TouchableOpacity
               style={styles.addButton}
