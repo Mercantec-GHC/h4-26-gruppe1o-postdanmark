@@ -146,7 +146,7 @@ export default function CreateRouteScreen() {
       }
 
       Alert.alert('Rute oprettet', 'Den nye rute er oprettet.', [
-        { text: 'OK', onPress: () => router.replace('/(tabs)/routes') },
+        { text: 'OK', onPress: () => router.replace('/(tabs)/deliveryroutes') },
       ]);
     } catch (e: unknown) {
       console.error('Create route error', e);

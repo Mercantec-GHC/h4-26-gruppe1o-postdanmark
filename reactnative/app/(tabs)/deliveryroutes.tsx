@@ -5,11 +5,15 @@ import {
   RefreshControl,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { API_BASE } from '@/services/config';
 import { getToken } from '@/services/tokenStorage';
+import { getUser, isAdmin } from '@/services/userStorage';
 
 // TypeScript interfaces der matcher API-responsens datastruktur
 
@@ -58,11 +62,17 @@ function getUserIdFromToken(token: string): number | null {
 }
 
 export default function DeliveryRoutesScreen() {
+  const router = useRouter();
   // State til at holde styr på ruter, indlæsning, opdatering og fejl
   const [routes, setRoutes] = useState<DeliveryRoute[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAdminUser, setIsAdminUser] = useState(false);
+
+  useEffect(() => {
+    getUser().then((user) => setIsAdminUser(user != null && isAdmin(user.role)));
+  }, []);
 
   /**
    * Henter leveringsruter tildelt den indloggede bruger fra API'et.
@@ -121,6 +131,10 @@ export default function DeliveryRoutesScreen() {
     setRefreshing(true);
     fetchRoutes();
   }, [fetchRoutes]);
+
+  const handleCreateRoute = () => {
+    router.push('/(tabs)/createroutes');
+  };
 
   // Returnerer en farve baseret på rutens status
   const getStatusColor = (statusName: string) => {
@@ -196,9 +210,23 @@ export default function DeliveryRoutesScreen() {
   // Vis indlæsningsindikator mens data hentes
   if (loading) {
     return (
-      <SafeAreaView style={styles.centered}>
-        <ActivityIndicator size="large" color="#1e88e5" />
-        <Text style={styles.loadingText}>Indlæser ruter...</Text>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Mine Leveringsruter</Text>
+          {isAdminUser && (
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={handleCreateRoute}
+              accessibilityLabel="Opret ny rute"
+            >
+              <IconSymbol name="plus" size={28} color="#1976d2" />
+            </TouchableOpacity>
+          )}
+        </View>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color="#1e88e5" />
+          <Text style={styles.loadingText}>Indlæser ruter...</Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -206,8 +234,22 @@ export default function DeliveryRoutesScreen() {
   // Vis fejlbesked hvis noget gik galt
   if (error) {
     return (
-      <SafeAreaView style={styles.centered}>
-        <Text style={styles.errorText}>{error}</Text>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Mine Leveringsruter</Text>
+          {isAdminUser && (
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={handleCreateRoute}
+              accessibilityLabel="Opret ny rute"
+            >
+              <IconSymbol name="plus" size={28} color="#1976d2" />
+            </TouchableOpacity>
+          )}
+        </View>
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -215,7 +257,18 @@ export default function DeliveryRoutesScreen() {
   // Hovedvisning med liste af leveringsruter
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Mine Leveringsruter</Text>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Mine Leveringsruter</Text>
+        {isAdminUser && (
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={handleCreateRoute}
+            accessibilityLabel="Opret ny rute"
+          >
+            <IconSymbol name="plus" size={28} color="#1976d2" />
+          </TouchableOpacity>
+        )}
+      </View>
       {routes.length === 0 ? (
         <View style={styles.centered}>
           <Text style={styles.emptyText}>Ingen ruter tildelt til dig.</Text>
@@ -239,6 +292,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#333',
+  },
+  addButton: {
+    padding: 8,
   },
   centered: {
     flex: 1,

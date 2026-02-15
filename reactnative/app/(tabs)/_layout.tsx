@@ -11,27 +11,21 @@ export default function TabLayout() {
 
   return (
     <Tabs
-      initialRouteName="routes"
+      initialRouteName="deliveryroutes"
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
         headerShown: false,
         tabBarButton: HapticTab,
+        tabBarIconStyle: { marginBottom: 0 },
+        tabBarLabelStyle: { textAlign: "center" },
       }}
     >
-      <Tabs.Screen
-        name="routes"
-        options={{
-          title: "Ruter",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="paperplane.fill" color={color} />
-          ),
-        }}
-      />
       <Tabs.Screen
         name="createroutes"
         options={{
           title: "Opret rute",
           tabBarButton: () => null,
+          tabBarItemStyle: { flex: 0, width: 0, overflow: "hidden" },
         }}
       />
       <Tabs.Screen
@@ -41,6 +35,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="paperplane.fill" color={color} />
           ),
+          tabBarItemStyle: { flex: 1 },
         }}
       />
       <Tabs.Screen
@@ -50,6 +45,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="house.fill" color={color} />
           ),
+          tabBarItemStyle: { flex: 1 },
         }}
       />
     </Tabs>

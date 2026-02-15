@@ -98,7 +98,7 @@ const LoginScreen: React.FC = () => {
         });
       }
       playSoundEffect(require("../sound-effects/honk-honk.wav"));
-      router.replace("/(tabs)/routes");
+      router.replace("/(tabs)/deliveryroutes");
     } catch (e: any) {
       console.error("Login error", e);
       setError(e?.message || "Login failed");
