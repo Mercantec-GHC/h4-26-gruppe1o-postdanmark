@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   RefreshControl,
   StyleSheet,
@@ -39,7 +40,8 @@ interface DeliveryRoute {
   totalDistanceKm: number;
   estimatedDurationMinutes: number;
   userId: number;
-  assignedUserId: number;
+  assignedUserId: number | null;
+  assignedUserName?: string | null;
   routeStatusId: number;
   statusName: string;
   stops: Stop[];
@@ -69,37 +71,38 @@ export default function DeliveryRoutesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [adminKnown, setAdminKnown] = useState(false);
 
   useEffect(() => {
-    getUser().then((user) => setIsAdminUser(user != null && isAdmin(user.role)));
+    getUser().then((user) => {
+      setIsAdminUser(user != null && isAdmin(user.role));
+      setAdminKnown(true);
+    });
   }, []);
 
   /**
-   * Henter leveringsruter tildelt den indloggede bruger fra API'et.
-   * 1. Henter JWT-token fra sikker lagring
-   * 2. Dekoder token for at finde brugerens ID
-   * 3. Kalder GET /api/DeliveryRoute/assigned/{userId}
+   * Henter leveringsruter: admin får alle ruter, andre får kun tildelte ruter.
    */
   const fetchRoutes = useCallback(async () => {
     try {
       setError(null);
 
-      // Hent token fra sikker lagring
       const token = await getToken();
       if (!token) {
         setError('Ikke autentificeret. Log venligst ind.');
         return;
       }
 
-      // Udtræk bruger-ID fra JWT-tokenet
       const userId = getUserIdFromToken(token);
       if (!userId) {
         setError('Kunne ikke bestemme bruger. Log venligst ind igen.');
         return;
       }
 
-      // Kald API'et med Authorization header
-      const res = await fetch(`${API_BASE}/api/DeliveryRoute/assigned/${userId}`, {
+      const url = isAdminUser
+        ? `${API_BASE}/api/DeliveryRoute`
+        : `${API_BASE}/api/DeliveryRoute/assigned/${userId}`;
+      const res = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -119,12 +122,12 @@ export default function DeliveryRoutesScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [isAdminUser]);
 
-  // Hent ruter ved første indlæsning af skærmen
+  // Hent ruter når admin-status er kendt (undgår dobbelt fetch)
   useEffect(() => {
-    fetchRoutes();
-  }, [fetchRoutes]);
+    if (adminKnown) fetchRoutes();
+  }, [adminKnown, fetchRoutes]);
 
   // Håndterer pull-to-refresh funktionalitet
   const onRefresh = useCallback(() => {
@@ -134,6 +137,37 @@ export default function DeliveryRoutesScreen() {
 
   const handleCreateRoute = () => {
     router.push('/(tabs)/createroutes');
+  };
+
+  const handleDeleteRoute = (item: DeliveryRoute) => {
+    Alert.alert(
+      'Slet rute',
+      `Er du sikker på, at du vil slette ruten "${item.name || 'Uden navn'}"?`,
+      [
+        { text: 'Annuller', style: 'cancel' },
+        {
+          text: 'Slet',
+          style: 'destructive',
+          onPress: async () => {
+            const token = await getToken();
+            if (!token) return;
+            try {
+              const res = await fetch(`${API_BASE}/api/DeliveryRoute/${item.id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              if (res.ok) {
+                setRoutes((prev) => prev.filter((r) => r.id !== item.id));
+              } else {
+                Alert.alert('Fejl', 'Kunne ikke slette ruten.');
+              }
+            } catch (e: any) {
+              Alert.alert('Fejl', e?.message || 'Kunne ikke slette ruten.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   // Returnerer en farve baseret på rutens status
@@ -162,64 +196,81 @@ export default function DeliveryRoutesScreen() {
 
   // Renderer et enkelt rute-kort i listen
   const renderRoute = ({ item }: { item: DeliveryRoute }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => handleRoutePress(item)}
-      activeOpacity={0.8}
-      disabled={!item.stops || item.stops.length === 0}
-    >
-      {/* Kort-header med rutenavn og statusbadge */}
-      <View style={styles.cardHeader}>
-        <Text style={styles.routeName}>{item.name}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.statusName) }]}>
-          <Text style={styles.statusText}>{item.statusName}</Text>
+    <View style={styles.card}>
+      <TouchableOpacity
+        onPress={() => handleRoutePress(item)}
+        activeOpacity={0.8}
+        disabled={!item.stops || item.stops.length === 0}
+        style={styles.cardTouchable}
+      >
+        {/* Kort-header med rutenavn og statusbadge */}
+        <View style={styles.cardHeader}>
+          <Text style={styles.routeName}>{item.name}</Text>
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.statusName) }]}>
+            <Text style={styles.statusText}>{item.statusName}</Text>
+          </View>
         </View>
-      </View>
 
-      {/* Rutedetaljer: dato, afstand, varighed og antal stop */}
-      <View style={styles.cardDetails}>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Planlagt dato:</Text>
-          <Text style={styles.detailValue}>
-            {item.scheduledDate
-              ? item.scheduledDate.split('T')[0].split('-').reverse().join('-')
-              : 'Ikke planlagt'}
-          </Text>
+        {/* Rutedetaljer: dato, afstand, varighed, antal stop og (for admin) tildelt bruger */}
+        <View style={styles.cardDetails}>
+          {isAdminUser && (
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Tildelt:</Text>
+              <Text style={styles.detailValue}>{item.assignedUserName ?? 'Ingen'}</Text>
+            </View>
+          )}
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Planlagt dato:</Text>
+            <Text style={styles.detailValue}>
+              {item.scheduledDate
+                ? item.scheduledDate.split('T')[0].split('-').reverse().join('-')
+                : 'Ikke planlagt'}
+            </Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Afstand:</Text>
+            <Text style={styles.detailValue}>{item.totalDistanceKm.toFixed(1)} km</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Estimeret varighed:</Text>
+            <Text style={styles.detailValue}>{Math.round(item.estimatedDurationMinutes)} min</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Stop:</Text>
+            <Text style={styles.detailValue}>{item.stops?.length ?? 0}</Text>
+          </View>
         </View>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Afstand:</Text>
-          <Text style={styles.detailValue}>{item.totalDistanceKm.toFixed(1)} km</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Estimeret varighed:</Text>
-          <Text style={styles.detailValue}>{Math.round(item.estimatedDurationMinutes)} min</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Stop:</Text>
-          <Text style={styles.detailValue}>{item.stops?.length ?? 0}</Text>
-        </View>
-      </View>
 
-      {/* Liste over stop, sorteret efter rækkefølge */}
-      {item.stops && item.stops.length > 0 && (
-        <View style={styles.stopsList}>
-          <Text style={styles.stopsHeader}>Stop</Text>
-          {item.stops
-            .sort((a, b) => a.sequence - b.sequence)
-            .map((stop, index) => (
-              <View key={index} style={styles.stopItem}>
-                <Text style={styles.stopSequence}>{stop.sequence}.</Text>
-                <View style={styles.stopInfo}>
-                  <Text style={styles.stopAddress}>{stop.address}</Text>
-                  {stop.status && (
-                    <Text style={styles.stopStatus}>{stop.status.name}</Text>
-                  )}
+        {/* Liste over stop, sorteret efter rækkefølge */}
+        {item.stops && item.stops.length > 0 && (
+          <View style={styles.stopsList}>
+            <Text style={styles.stopsHeader}>Stop</Text>
+            {item.stops
+              .sort((a, b) => a.sequence - b.sequence)
+              .map((stop, index) => (
+                <View key={index} style={styles.stopItem}>
+                  <Text style={styles.stopSequence}>{stop.sequence}.</Text>
+                  <View style={styles.stopInfo}>
+                    <Text style={styles.stopAddress}>{stop.address}</Text>
+                    {stop.status && (
+                      <Text style={styles.stopStatus}>{stop.status.name}</Text>
+                    )}
+                  </View>
                 </View>
-              </View>
-            ))}
-        </View>
+              ))}
+          </View>
+        )}
+      </TouchableOpacity>
+      {isAdminUser && (
+        <TouchableOpacity
+          style={styles.deleteBtn}
+          onPress={() => handleDeleteRoute(item)}
+          accessibilityLabel="Slet rute"
+        >
+          <Text style={styles.deleteBtnText}>Slet</Text>
+        </TouchableOpacity>
       )}
-    </TouchableOpacity>
+    </View>
   );
 
   // Vis indlæsningsindikator mens data hentes
@@ -286,7 +337,9 @@ export default function DeliveryRoutesScreen() {
       </View>
       {routes.length === 0 ? (
         <View style={styles.centered}>
-          <Text style={styles.emptyText}>Ingen ruter tildelt til dig.</Text>
+          <Text style={styles.emptyText}>
+            {isAdminUser ? 'Ingen ruter.' : 'Ingen ruter tildelt til dig.'}
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -355,6 +408,22 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
     marginBottom: 12,
+  },
+  cardTouchable: {
+    flex: 1,
+  },
+  deleteBtn: {
+    marginTop: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignSelf: 'flex-end',
+    borderRadius: 8,
+    backgroundColor: '#ffebee',
+  },
+  deleteBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#c62828',
   },
   cardHeader: {
     flexDirection: 'row',

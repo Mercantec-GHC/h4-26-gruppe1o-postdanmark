@@ -159,6 +159,7 @@ public class DeliveryRouteController : ControllerBase
         }
 
         // Map til DTO
+        await _context.Entry(route).Reference(r => r.AssignedUser).LoadAsync();
         var resultDto = new DeliveryRouteDto
         {
             Id = route.Id,
@@ -168,6 +169,7 @@ public class DeliveryRouteController : ControllerBase
             EstimatedDurationMinutes = route.EstimatedDurationMinutes,
             UserId = route.UserId,
             AssignedUserId = route.AssignedUserId,
+            AssignedUserName = route.AssignedUser?.Name,
 
             RouteStatusId = route.RouteStatusId,
             StatusName = route.Status?.Name,
@@ -192,7 +194,7 @@ public class DeliveryRouteController : ControllerBase
     {
         var route = await _context.DeliveryRoutes
             .Include(r => r.Status)
-
+            .Include(r => r.AssignedUser)
             .Include(r => r.Stops)
             .ThenInclude(s => s.Status)
             .FirstOrDefaultAsync(r => r.Id == id);
@@ -211,6 +213,7 @@ public class DeliveryRouteController : ControllerBase
             EstimatedDurationMinutes = route.EstimatedDurationMinutes,
             UserId = route.UserId,
             AssignedUserId = route.AssignedUserId,
+            AssignedUserName = route.AssignedUser?.Name,
 
             RouteStatusId = route.RouteStatusId,
             StatusName = route.Status?.Name,
@@ -235,7 +238,7 @@ public class DeliveryRouteController : ControllerBase
     {
         var routes = await _context.DeliveryRoutes
             .Include(r => r.Status)
-
+            .Include(r => r.AssignedUser)
             .Include(r => r.Stops)
             .ThenInclude(s => s.Status)
             .Where(r => r.UserId == userId)
@@ -250,6 +253,7 @@ public class DeliveryRouteController : ControllerBase
             EstimatedDurationMinutes = route.EstimatedDurationMinutes,
             UserId = route.UserId,
             AssignedUserId = route.AssignedUserId,
+            AssignedUserName = route.AssignedUser?.Name,
 
             RouteStatusId = route.RouteStatusId,
             StatusName = route.Status?.Name,
@@ -267,14 +271,15 @@ public class DeliveryRouteController : ControllerBase
     }
 
     /// <summary>
-    /// Hent alle leveringsruter
+    /// Hent alle leveringsruter (kun admin)
     /// </summary>
     [HttpGet]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<DeliveryRouteDto>>> GetAllRoutes()
     {
         var routes = await _context.DeliveryRoutes
             .Include(r => r.Status)
-
+            .Include(r => r.AssignedUser)
             .Include(r => r.Stops)
             .ThenInclude(s => s.Status)
             .ToListAsync();
@@ -288,6 +293,7 @@ public class DeliveryRouteController : ControllerBase
             EstimatedDurationMinutes = route.EstimatedDurationMinutes,
             UserId = route.UserId,
             AssignedUserId = route.AssignedUserId,
+            AssignedUserName = route.AssignedUser?.Name,
 
             RouteStatusId = route.RouteStatusId,
             StatusName = route.Status?.Name,
@@ -340,6 +346,7 @@ public class DeliveryRouteController : ControllerBase
             EstimatedDurationMinutes = route.EstimatedDurationMinutes,
             UserId = route.UserId,
             AssignedUserId = route.AssignedUserId,
+            AssignedUserName = route.AssignedUser?.Name,
 
             RouteStatusId = route.RouteStatusId,
             StatusName = route.Status?.Name,
@@ -357,6 +364,24 @@ public class DeliveryRouteController : ControllerBase
     }
 
     /// <summary>
+    /// Slet en leveringsrute (kun admin)
+    /// </summary>
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult> DeleteDeliveryRoute(int id)
+    {
+        var route = await _context.DeliveryRoutes.FindAsync(id);
+        if (route == null)
+        {
+            return NotFound($"Rute med ID {id} blev ikke fundet");
+        }
+
+        _context.DeliveryRoutes.Remove(route);
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    /// <summary>
     /// Hent alle leveringsruter tildelt en specifik bruger (medarbejder)
     /// </summary>
     [HttpGet("assigned/{userId}")]
@@ -370,7 +395,7 @@ public class DeliveryRouteController : ControllerBase
 
         var routes = await _context.DeliveryRoutes
             .Include(r => r.Status)
-
+            .Include(r => r.AssignedUser)
             .Include(r => r.Stops)
             .ThenInclude(s => s.Status)
             .Where(r => r.AssignedUserId == userId)
@@ -385,6 +410,7 @@ public class DeliveryRouteController : ControllerBase
             EstimatedDurationMinutes = route.EstimatedDurationMinutes,
             UserId = route.UserId,
             AssignedUserId = route.AssignedUserId,
+            AssignedUserName = route.AssignedUser?.Name,
 
             RouteStatusId = route.RouteStatusId,
             StatusName = route.Status?.Name,

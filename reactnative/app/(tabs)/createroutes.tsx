@@ -276,7 +276,7 @@ export default function CreateRouteScreen() {
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.cancelBtn} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.cancelBtn} onPress={() => router.replace('/(tabs)/deliveryroutes')}>
           <Text style={styles.cancelBtnText}>Annuller</Text>
         </TouchableOpacity>
       </ScrollView>

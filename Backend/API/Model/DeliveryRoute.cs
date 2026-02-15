@@ -29,6 +29,7 @@ public class DeliveryRouteDto
     public double EstimatedDurationMinutes { get; set; }
     public int UserId { get; set; }
     public int? AssignedUserId { get; set; }
+    public string? AssignedUserName { get; set; }
     public int RouteStatusId { get; set; }
     public string? StatusName { get; set; }
     public List<StopDto> Stops { get; set; } = new();
