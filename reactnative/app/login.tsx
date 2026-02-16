@@ -1,16 +1,20 @@
 import { useRouter } from "expo-router";
+// importerer vores "Kamæleon"-komponenter (De skifter selv farve)
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+//________________________________________________________________
 import React from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { API_BASE } from "../services/config";
@@ -27,11 +31,14 @@ const LoginScreen: React.FC = () => {
 
   const handleLogin = async () => {
     setError(null);
+
+    // Simpel validering: Er felterne udfyldt?
     if (!email || !password) {
       setError("Please enter both email and password.");
       playSoundEffect(require("../sound-effects/error.wav"));
       return;
     }
+
     try {
       setLoading(true);
       const res = await fetch(`${API_BASE}/api/Auth/login`, {
@@ -39,12 +46,12 @@ const LoginScreen: React.FC = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      // Error Message - Handling: Vi prøver at finde en pæn besked i svaret, ellers fallback til status
-      // TJEK OM SERVEREN SIGER "NEJ" (Fejl 400, 401, 500 osv.)
-      if (!res.ok) {
 
-        // 1. Hent svaret som rå tekst først (Backup-løsning)
-        // Hvis serveren crasher helt, sender den måske bare tekst og ikke JSON.
+      // ---------------------------------------------------------
+      // START: FEJL-OVERSÆTTEREN (Håndterer serverens svar)
+      // ---------------------------------------------------------
+      if (!res.ok) {
+        // 1. Hent rå tekst som backup (hvis alt andet fejler)
         const text = await res.text();
         let errorMessage = text;
 
@@ -52,40 +59,36 @@ const LoginScreen: React.FC = () => {
           // 2. Prøv at pakke gaven ud (Er det JSON format?)
           const data = JSON.parse(text);
 
-          // CASE A: Dørmand 1 (Vores egen kode)
-          // Hvis backend siger: "Forkert password", ligger det her.
+          // CASE A: Vores egen kode (f.eks. "Forkert password")
           if (data.message) {
             errorMessage = data.message;
           }
-
-          // CASE B: Dørmand 2 (Systemets automatiske tjek)
-          // Hvis du skriver "dlkbvmd" i stedet for en legit email.
-          // Systemet sender en liste af fejl. Vi tager bare den allerførste fejl, vi kan finde.
+          // CASE B: Systemets validering (f.eks. "Ugyldig email")
+          // Vi finder den første fejl i listen og viser den.
           else if (data.errors) {
-            // Find navnet på den første fejl (f.eks. "Email")
             const firstErrorKey = Object.keys(data.errors)[0];
-
             if (firstErrorKey) {
-              // Hent selve beskeden (f.eks. "Ugyldig email-adresse")
               errorMessage = data.errors[firstErrorKey][0];
             }
           }
-          // CASE C: Sidste udvej (Generel titel)
-          // Hvis intet andet findes, tager vi titlen (f.eks. "One or more errors occurred").
+          // CASE C: Generel titel (Sidste udvej)
           else if (data.title) {
             errorMessage = data.title;
           }
         } catch (e) {
-          // 3. Hvis pakken IKKE kunne åbnes (ikke JSON), så gør vi ingenting.
-          // Vi beholder bare den rå tekst, vi hentede i trin 1.
+          // 3. Hvis det ikke er JSON, gør vi ingenting og beholder rå tekst.
         }
-        // 4. Stop op og kast fejlen videre til brugeren (Det røde tekstfelt)
+
+        // 4. Kast den pæne besked videre til brugeren
         throw new Error(errorMessage || `Login failed (${res.status})`);
       }
+      // ---------------------------------------------------------
+      // SLUT: FEJL-OVERSÆTTEREN
+      // ---------------------------------------------------------
 
-      
-      
       const data = await res.json();
+
+      // Gem login-info (Token og Bruger) på telefonen
       if (data.token) {
         await saveToken(data.token);
       }
@@ -97,8 +100,10 @@ const LoginScreen: React.FC = () => {
           role: data.user.role ?? "Employee",
         });
       }
+
       playSoundEffect(require("../sound-effects/honk-honk.wav"));
-      router.replace("/(tabs)/deliveryroutes");
+      router.replace("/(tabs)/deliveryroutes"); // Send brugeren ind i appen
+
     } catch (e: any) {
       console.error("Login error", e);
       setError(e?.message || "Login failed");
@@ -119,92 +124,110 @@ const LoginScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Image
-            source={require('../assets/images/PostDanmark.png')}
-            style={styles.logo}
-        />
+      // 1. YDERSTE LAG: ThemedView
+      // Denne sørger for baggrundsfarven. 
+      // Hvis telefonen er i Dark Mode -> Bliver den mørkegrå (#151718).
+      // Hvis telefonen er i Light Mode -> Bliver den hvid (#fff).
+      <ThemedView style={{ flex: 1 }}>
 
-        {/* Welcome Header */}
-        <Text style={styles.welcomeText}>Velkommen!</Text>
-
-        {/* Email Input */}
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email</Text>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your email"
-              placeholderTextColor="#888"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              returnKeyType="next"
+        <SafeAreaView style={styles.container}>
+          <ScrollView
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled"
+          >
+            <Image
+                source={require('../assets/images/PostDanmark.png')}
+                style={styles.logo}
             />
-          </View>
-        </View>
 
-        {/* Password Input */}
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your password"
-              placeholderTextColor="#888"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              returnKeyType="done"
-            />
-          </View>
-        </View>
+            {/* 2. OVERSKRIFT: ThemedText
+              type="title" gør den stor og fed.
+              Den skifter selv farve mellem sort og hvid. */}
+            <ThemedText type="title" style={styles.welcomeText}>Velkommen!</ThemedText>
 
-        {!!error && <Text style={styles.errorText}>{error}</Text>}
+            {/* Email Input */}
+            <View style={styles.inputContainer}>
+              {/* Label skifter også farve automatisk */}
+              <ThemedText type="defaultSemiBold" style={styles.label}>Email</ThemedText>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Enter your email"
+                    placeholderTextColor="#888"
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    returnKeyType="next"
+                />
+              </View>
+            </View>
 
-        {/* Forgot Password Link */}
-        <TouchableOpacity
-          style={styles.forgotPasswordContainer}
-          onPress={handleForgotPassword}
-          disabled={loading}
-        >
-          <Text style={styles.forgotPasswordText}>Glemt Password?</Text>
-        </TouchableOpacity>
+            {/* Password Input */}
+            <View style={styles.inputContainer}>
+              <ThemedText type="defaultSemiBold" style={styles.label}>Password</ThemedText>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Enter your password"
+                    placeholderTextColor="#888"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                    returnKeyType="done"
+                />
+              </View>
+            </View>
 
-        {/* Login Button */}
-        <TouchableOpacity
-          style={styles.loginButton}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.loginButtonText}>Log In</Text>
-          )}
-        </TouchableOpacity>
+            {/* Fejlbesked (Rød tekst) */}
+            {!!error && <Text style={styles.errorText}>{error}</Text>}
 
-        {/* Register Link */}
-        <View style={styles.registerRow}>
-          <Text style={styles.registerPrompt}>Har du ikke en konto?</Text>
-          <TouchableOpacity onPress={goToRegister} disabled={loading}>
-            <Text style={styles.registerText}>Opret konto</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+            {/* Glemt Password Link */}
+            <TouchableOpacity
+                style={styles.forgotPasswordContainer}
+                onPress={handleForgotPassword}
+                disabled={loading}
+            >
+              <Text style={styles.forgotPasswordText}>Glemt Password?</Text>
+            </TouchableOpacity>
+
+            {/* Login Knap */}
+            <TouchableOpacity
+                style={styles.loginButton}
+                onPress={handleLogin}
+                disabled={loading}
+            >
+              {loading ? (
+                  <ActivityIndicator color="#fff" />
+              ) : (
+                  <Text style={styles.loginButtonText}>Log In</Text>
+              )}
+            </TouchableOpacity>
+
+            {/* Opret Konto Link */}
+            <View style={styles.registerRow}>
+              {/* HER VAR FEJLEN: Vi bruger nu ThemedText, så den bliver hvid i Dark Mode */}
+              <ThemedText style={styles.registerPrompt}>Har du ikke en konto?</ThemedText>
+
+              <TouchableOpacity onPress={goToRegister} disabled={loading}>
+                <Text style={styles.registerText}>Opret konto</Text>
+              </TouchableOpacity>
+            </View>
+
+          </ScrollView>
+        </SafeAreaView>
+      </ThemedView>
   );
 };
 
+// ---------------------------------------------------------
+// STYLES
+// VIGTIGT: Fjernet hardcodede farver (fx "color: #000" og "backgroundColor: #fff")
+// fra de steder, hvor vi bruger Themed-komponenter.
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    // backgroundColor: "#fff", <--- SLETTET (ThemedView styrer det nu)
   },
   scrollContent: {
     flexGrow: 1,
@@ -212,20 +235,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   welcomeText: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#000",
+    // fontSize og alignment beholder vi her.
+    // Farven styres af ThemedText.
     textAlign: "center",
     marginBottom: 40,
+    // color: "#000", <--- SLETTET
     ...Platform.select({
-      ios: {
-        fontFamily: "System",
-        fontWeight: "700",
-      },
-      android: {
-        fontFamily: "sans-serif-medium",
-        fontWeight: "700",
-      },
+      ios: { fontFamily: "System", fontWeight: "700" },
+      android: { fontFamily: "sans-serif-medium", fontWeight: "700" },
       default: {},
     }),
   },
@@ -233,25 +250,17 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#333",
     marginBottom: 8,
+    // color: "#333", <--- SLETTET
     ...Platform.select({
-      ios: {
-        fontFamily: "System",
-        fontWeight: "600",
-      },
-      android: {
-        fontFamily: "sans-serif-medium",
-        fontWeight: "600",
-      },
+      ios: { fontFamily: "System", fontWeight: "600" },
+      android: { fontFamily: "sans-serif-medium", fontWeight: "600" },
       default: {},
     }),
   },
   inputWrapper: {
     height: 50,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#f5f5f5", // beholder den lysegrå-boks til input (ser fint ud i begge modes)
     borderRadius: 8,
     borderWidth: 1,
     borderColor: "#e0e0e0",
@@ -260,15 +269,11 @@ const styles = StyleSheet.create({
   },
   input: {
     fontSize: 16,
-    color: "#333",
+    color: "#333", // Teksten inde i inputtet forbliver mørkegrå
     padding: 0,
     ...Platform.select({
-      ios: {
-        fontFamily: "System",
-      },
-      android: {
-        fontFamily: "sans-serif",
-      },
+      ios: { fontFamily: "System" },
+      android: { fontFamily: "sans-serif" },
       default: {},
     }),
   },
@@ -278,17 +283,11 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontSize: 14,
-    color: "#1e88e5",
+    color: "#1e88e5", // Blå farve er fin i både lys og mørk
     fontWeight: "500",
     ...Platform.select({
-      ios: {
-        fontFamily: "System",
-        fontWeight: "600",
-      },
-      android: {
-        fontFamily: "sans-serif-medium",
-        fontWeight: "600",
-      },
+      ios: { fontFamily: "System", fontWeight: "600" },
+      android: { fontFamily: "sans-serif-medium", fontWeight: "600" },
       default: {},
     }),
   },
@@ -306,14 +305,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#fff",
     ...Platform.select({
-      ios: {
-        fontFamily: "System",
-        fontWeight: "700",
-      },
-      android: {
-        fontFamily: "sans-serif-medium",
-        fontWeight: "700",
-      },
+      ios: { fontFamily: "System", fontWeight: "700" },
+      android: { fontFamily: "sans-serif-medium", fontWeight: "700" },
       default: {},
     }),
   },
@@ -331,7 +324,7 @@ const styles = StyleSheet.create({
   },
   registerPrompt: {
     fontSize: 14,
-    color: "#333",
+    // color: "#333", <--- SLETTET (ThemedText styrer det nu)
   },
   registerText: {
     fontSize: 14,
@@ -340,9 +333,9 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 300,
-      height: 200,
-      alignSelf: "center",
-      marginTop: -100,
+    height: 200,
+    alignSelf: "center",
+    marginTop: -100,
   },
 });
 
