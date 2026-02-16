@@ -19,6 +19,8 @@ const MAPPING = {
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
   'plus': 'add',
+  'map.fill': 'map',              // Oversætter "map.fill" til Google-ikonet "map"
+  'gearshape.fill': 'settings',   // Oversætter "gearshape.fill" til Google-ikonet "settings"
 } as IconMapping;
 
 /**

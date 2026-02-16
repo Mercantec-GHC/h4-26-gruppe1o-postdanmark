@@ -1,22 +1,18 @@
-import * as SecureStore from "expo-secure-store";
-import { Platform } from "react-native";
+import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
-export type StoredUser = {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-};
+const USER_KEY = 'user_info';
 
-const USER_KEY = "user_info";
-
-export async function saveUser(user: StoredUser): Promise<boolean> {
+/**
+ * Gemmer brugerinformation
+ */
+export async function saveUser(user: any) {
+  const jsonValue = JSON.stringify(user);
   try {
-    const json = JSON.stringify(user);
-    if (Platform.OS === "web") {
-      localStorage.setItem(USER_KEY, json);
+    if (Platform.OS === 'web') {
+      localStorage.setItem(USER_KEY, jsonValue);
     } else {
-      await SecureStore.setItemAsync(USER_KEY, json);
+      await SecureStore.setItemAsync(USER_KEY, jsonValue);
     }
     return true;
   } catch (error) {
@@ -25,34 +21,45 @@ export async function saveUser(user: StoredUser): Promise<boolean> {
   }
 }
 
-export async function getUser(): Promise<StoredUser | null> {
+/**
+ * Henter gemt brugerinformation
+ */
+export async function getUser() {
   try {
-    if (Platform.OS === "web") {
-      const raw = localStorage.getItem(USER_KEY);
-      return raw ? JSON.parse(raw) : null;
+    let jsonValue;
+    if (Platform.OS === 'web') {
+      jsonValue = localStorage.getItem(USER_KEY);
+    } else {
+      jsonValue = await SecureStore.getItemAsync(USER_KEY);
     }
-    const raw = await SecureStore.getItemAsync(USER_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch (error) {
-    console.error("Failed to get user:", error);
+    return jsonValue != null ? JSON.parse(jsonValue) : null;
+  } catch (e) {
+    console.error("Error reading user", e);
     return null;
   }
 }
 
-export async function deleteUser(): Promise<boolean> {
+/**
+ * Sletter brugerinformation (Log ud)
+ */
+export async function removeUser() {
   try {
-    if (Platform.OS === "web") {
+    if (Platform.OS === 'web') {
       localStorage.removeItem(USER_KEY);
     } else {
       await SecureStore.deleteItemAsync(USER_KEY);
     }
     return true;
   } catch (error) {
-    console.error("Failed to delete user:", error);
+    console.error("Failed to remove user:", error);
     return false;
   }
 }
 
-export function isAdmin(role: string): boolean {
-  return role === "Admin";
+/**
+ * Hjælpefunktion til at tjekke om brugeren er Admin
+ */
+export function isAdmin(role: string | number): boolean {
+  // Tjekker om rollen er "Admin" eller ID 2 (baseret på din database-logik)
+  return role === "Admin" || role === 2 || role === "2";
 }

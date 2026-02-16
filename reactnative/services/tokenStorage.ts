@@ -1,29 +1,16 @@
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
-/**
- * Token Storage Helper
- *
- * Håndterer sikker lagring af authentication tokens på tværs af platforme:
- * - iOS: Bruger Keychain (krypteret, hardware-beskyttet)
- * - Android: Bruger Keystore + EncryptedSharedPreferences (krypteret)
- * - Web: Bruger localStorage
- */
-
 const TOKEN_KEY = "auth_token";
 
 /**
  * Gemmer authentication token sikkert
- * @param token - JWT token fra login response
- * @returns true hvis token blev gemt, false ved fejl
  */
 export async function saveToken(token: string): Promise<boolean> {
   try {
     if (Platform.OS === "web") {
-      // Web: Bruger localStorage til browser-support
       localStorage.setItem(TOKEN_KEY, token);
     } else {
-      // Mobil: SecureStore krypterer automatisk via OS'ets sikre lagring
       await SecureStore.setItemAsync(TOKEN_KEY, token);
     }
     return true;
@@ -35,8 +22,6 @@ export async function saveToken(token: string): Promise<boolean> {
 
 /**
  * Henter gemt authentication token
- * Bruges til at vedhæfte token til API-kald (Authorization header)
- * @returns Token string hvis fundet, null hvis ikke gemt eller ved fejl
  */
 export async function getToken(): Promise<string | null> {
   try {
@@ -52,10 +37,9 @@ export async function getToken(): Promise<string | null> {
 
 /**
  * Sletter gemt authentication token
- * Bruges ved logout for at rydde brugerens session
- * @returns true hvis token blev slettet, false ved fejl
+ * Vi kalder denne 'removeToken' så den matcher det, vi importerer i Settings
  */
-export async function deleteToken(): Promise<boolean> {
+export async function removeToken(): Promise<boolean> {
   try {
     if (Platform.OS === "web") {
       localStorage.removeItem(TOKEN_KEY);

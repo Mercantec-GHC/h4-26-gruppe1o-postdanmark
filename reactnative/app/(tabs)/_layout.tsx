@@ -48,6 +48,18 @@ export default function TabLayout() {
           tabBarItemStyle: { flex: 1 },
         }}
       />
+
+        {/* --- HER ER DEN NYE INDSTILLINGER KNAP (Nu inde i listen!) --- */}
+        <Tabs.Screen
+            name="settings"
+            options={{
+                title: "Indstillinger",
+                tabBarIcon: ({ color }) => (
+                    <IconSymbol size={28} name="gearshape.fill" color={color} />
+                ),
+            }}
+        />
     </Tabs>
+      
   );
 }
