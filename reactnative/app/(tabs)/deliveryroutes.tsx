@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Platform,
   RefreshControl,
   StyleSheet,
   Text,
@@ -139,35 +140,45 @@ export default function DeliveryRoutesScreen() {
     router.push('/(tabs)/createroutes');
   };
 
+  const deleteRoute = async (item: DeliveryRoute) => {
+    const token = await getToken();
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/DeliveryRoute/${item.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setRoutes((prev) => prev.filter((r) => r.id !== item.id));
+      } else {
+        if (Platform.OS === 'web') {
+          window.alert('Kunne ikke slette ruten.');
+        } else {
+          Alert.alert('Fejl', 'Kunne ikke slette ruten.');
+        }
+      }
+    } catch (e: any) {
+      const msg = e?.message || 'Kunne ikke slette ruten.';
+      if (Platform.OS === 'web') {
+        window.alert(msg);
+      } else {
+        Alert.alert('Fejl', msg);
+      }
+    }
+  };
+
   const handleDeleteRoute = (item: DeliveryRoute) => {
-    Alert.alert(
-      'Slet rute',
-      `Er du sikker på, at du vil slette ruten "${item.name || 'Uden navn'}"?`,
-      [
+    const message = `Er du sikker på, at du vil slette ruten "${item.name || 'Uden navn'}"?`;
+    if (Platform.OS === 'web') {
+      if (window.confirm(message)) {
+        deleteRoute(item);
+      }
+    } else {
+      Alert.alert('Slet rute', message, [
         { text: 'Annuller', style: 'cancel' },
-        {
-          text: 'Slet',
-          style: 'destructive',
-          onPress: async () => {
-            const token = await getToken();
-            if (!token) return;
-            try {
-              const res = await fetch(`${API_BASE}/api/DeliveryRoute/${item.id}`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              if (res.ok) {
-                setRoutes((prev) => prev.filter((r) => r.id !== item.id));
-              } else {
-                Alert.alert('Fejl', 'Kunne ikke slette ruten.');
-              }
-            } catch (e: any) {
-              Alert.alert('Fejl', e?.message || 'Kunne ikke slette ruten.');
-            }
-          },
-        },
-      ]
-    );
+        { text: 'Slet', style: 'destructive', onPress: () => deleteRoute(item) },
+      ]);
+    }
   };
 
   // Returnerer en farve baseret på rutens status
