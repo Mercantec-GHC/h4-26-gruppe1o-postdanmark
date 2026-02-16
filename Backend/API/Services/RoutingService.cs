@@ -29,6 +29,13 @@ public interface IRoutingService
     /// <param name="coordinates">Liste af koordinater (latitude, longitude)</param>
     /// <returns>RouteOptimizationResult med distance, varighed og optimeret rækkefølge</returns>
     Task<RouteOptimizationResult?> OptimizeRouteAsync(List<(double Latitude, double Longitude)> coordinates);
+
+    /// <summary>
+    /// Hent vejgeometri mellem stoppesteder (kørerute ad vejene, hurtigste rute, undgå færger når muligt).
+    /// </summary>
+    /// <param name="coordinates">Liste af koordinater (latitude, longitude) i rækkefølge</param>
+    /// <returns>Liste af (lat, lon) punkter der beskriver ruten, eller null ved fejl</returns>
+    Task<List<(double Latitude, double Longitude)>?> GetRoadGeometryAsync(List<(double Latitude, double Longitude)> coordinates);
 }
 
 /// <summary>
@@ -129,6 +136,79 @@ public class RoutingService : IRoutingService
             _logger.LogError(ex, "Fejl ved optimering af rute");
             return new RouteOptimizationResult { Error = $"Exception: {ex.Message}" };
         }
+    }
+
+    /// <summary>
+    /// Hent vejgeometri ved at kalde OSRM route API for hvert segment (A→B, B→C, ...).
+    /// Hurtigste kørerute; exclude=ferry bruges hvis serveren understøtter det.
+    /// </summary>
+    public async Task<List<(double Latitude, double Longitude)>?> GetRoadGeometryAsync(List<(double Latitude, double Longitude)> coordinates)
+    {
+        if (coordinates == null || coordinates.Count < 2)
+            return coordinates?.ToList();
+
+        var all = new List<(double Latitude, double Longitude)>();
+
+        for (int i = 0; i < coordinates.Count - 1; i++)
+        {
+            var from = coordinates[i];
+            var to = coordinates[i + 1];
+            var coordsStr = $"{from.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)},{from.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)};{to.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)},{to.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
+            var url = $"{OsrmBaseUrl}/route/v1/driving/{coordsStr}?overview=full&geometries=geojson&exclude=ferry";
+
+            try
+            {
+                var response = await _httpClient.GetAsync(url);
+                if (!response.IsSuccessStatusCode)
+                {
+                    url = $"{OsrmBaseUrl}/route/v1/driving/{coordsStr}?overview=full&geometries=geojson";
+                    response = await _httpClient.GetAsync(url);
+                }
+
+                if (!response.IsSuccessStatusCode)
+                    return null;
+
+                var content = await response.Content.ReadAsStringAsync();
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var result = JsonSerializer.Deserialize<OsrmRouteResponse>(content, options);
+
+                var route = result?.Routes?.FirstOrDefault();
+                if (route?.Geometry?.Coordinates == null || route.Geometry.Coordinates.Count == 0)
+                    return null;
+
+                var segment = route.Geometry.Coordinates
+                    .Select(c => (Latitude: c[1], Longitude: c[0]))
+                    .ToList();
+                if (i > 0 && segment.Count > 0)
+                    segment.RemoveAt(0);
+                all.AddRange(segment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "OSRM segment request failed for segment {I}", i);
+                return null;
+            }
+        }
+
+        return all.Count > 0 ? all : null;
+    }
+
+    private class OsrmRouteResponse
+    {
+        [JsonPropertyName("routes")]
+        public List<OsrmRoute>? Routes { get; set; }
+    }
+
+    private class OsrmRoute
+    {
+        [JsonPropertyName("geometry")]
+        public OsrmGeometry? Geometry { get; set; }
+    }
+
+    private class OsrmGeometry
+    {
+        [JsonPropertyName("coordinates")]
+        public List<double[]> Coordinates { get; set; } = new();
     }
 
     private class OsrmTripResponse

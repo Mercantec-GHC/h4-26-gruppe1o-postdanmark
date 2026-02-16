@@ -1,10 +1,11 @@
 // components/DeliveryMap.web.tsx
 
 // 1. THE TOOLBOX 🧰
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native'; // Standard UI blocks
 import * as Location from 'expo-location'; // The GPS Tool
 import type { RouteStopInput } from './DeliveryMap.native';
+import { getRoadRouteLeaflet } from '@/services/roadRouting';
 
 function routeStopsToMapStops(routeStops: RouteStopInput[]) {
     return routeStops
@@ -48,6 +49,10 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
         initialStops && initialStops.length > 0 ? routeStopsToMapStops(initialStops) : DEFAULT_STOPS
     );
 
+    // Road-following route (real roads, fastest, no ferries when supported)
+    const [routePositions, setRoutePositions] = useState<[number, number][] | null>(null);
+    const [routeLoading, setRouteLoading] = useState(false);
+
     useEffect(() => {
         if (initialStops && initialStops.length > 0) {
             setStops(routeStopsToMapStops(initialStops));
@@ -56,8 +61,30 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
         }
     }, [initialStops]);
 
-    // Helper: Convert the list of stops into simple coordinates for the blue line
-    const positions = stops.map(stop => [stop.lat, stop.lng] as [number, number]);
+    // Fetch road route when stops change
+    const fetchRoadRoute = useCallback(async () => {
+        if (stops.length < 2) {
+            setRoutePositions(stops.length === 1 ? [[stops[0].lat, stops[0].lng]] : null);
+            return;
+        }
+        setRouteLoading(true);
+        setRoutePositions(null);
+        try {
+            const positions = await getRoadRouteLeaflet(stops.map((s) => ({ lat: s.lat, lng: s.lng })));
+            setRoutePositions(positions);
+        } catch {
+            setRoutePositions(stops.map((s) => [s.lat, s.lng] as [number, number]));
+        } finally {
+            setRouteLoading(false);
+        }
+    }, [stops]);
+
+    useEffect(() => {
+        fetchRoadRoute();
+    }, [fetchRoadRoute]);
+
+    // Fallback: straight line if no road route (e.g. while loading or on error)
+    const positions = routePositions ?? stops.map(stop => [stop.lat, stop.lng] as [number, number]);
 
     // 3. THE ROBOT (EFFECTS) 🤖
 
@@ -191,6 +218,11 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
     // 7. THE MAIN SCREEN (RENDER) 🎨
     return (
         <View style={styles.container}>
+            {routeLoading && (
+                <View style={styles.routeLoading}>
+                    <Text style={styles.routeLoadingText}>Beregner rute ad vejene...</Text>
+                </View>
+            )}
             {/* RAW CSS INJECTION */}
             {/* React Native Web sometimes struggles with Map styles. 
                 We use a standard HTML <style> tag to force the map to behave. */}
@@ -218,8 +250,8 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
 
-                {/* The Blue Line */}
-                <Polyline positions={positions} pathOptions={{ color: 'blue' }} />
+                {/* The Blue Line: follows real roads (fastest route, no ferries) */}
+                <Polyline positions={positions} pathOptions={{ color: 'blue', weight: 4 }} />
 
                 {/* The Pins */}
                 {stops.map((stop) => (
@@ -286,5 +318,21 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 16,
         fontWeight: 'bold',
-    }
+    },
+    routeLoading: {
+        position: 'absolute',
+        top: 12,
+        left: 12,
+        right: 12,
+        zIndex: 1000,
+        backgroundColor: 'rgba(255,255,255,0.9)',
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    routeLoadingText: {
+        fontSize: 14,
+        color: '#333',
+    },
 });

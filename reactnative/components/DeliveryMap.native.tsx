@@ -4,9 +4,10 @@
 // These are the raw materials we need to build the screen.
 import { StyleSheet, View, Alert, Text, TouchableOpacity } from 'react-native'; // Bricks (View), Paint (Style), and Text.
 import MapView, { Marker, Polyline } from 'react-native-maps'; // The specific tools for Maps (The Map itself, Pins, and Lines).
-import { useState, useEffect, useRef } from 'react'; // The Brain: Memory (State), Automation (Effect), and Remote Control (Ref).
+import { useState, useEffect, useRef, useCallback } from 'react'; // The Brain: Memory (State), Automation (Effect), and Remote Control (Ref).
 import * as Location from 'expo-location'; // The Sensor: Allows us to talk to the phone's GPS chip.
 import { playSoundEffect } from '@/services/soundEffects';
+import { getRoadRouteNative } from '@/services/roadRouting';
 
 // Stop format when passed from the delivery routes screen (API shape)
 export interface RouteStopInput {
@@ -70,6 +71,10 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
             : DEFAULT_STOPS
     );
 
+    // Road-following route (real roads, fastest, no ferries when supported)
+    const [routeCoordinates, setRouteCoordinates] = useState<{ latitude: number; longitude: number }[]>([]);
+    const [routeLoading, setRouteLoading] = useState(false);
+
     // When the user selects a different route on the delivery routes page, update the map stops.
     useEffect(() => {
         if (initialStops && initialStops.length > 0) {
@@ -80,6 +85,30 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
             setSelectedStop(null);
         }
     }, [initialStops]);
+
+    // Fetch road route when stops change
+    const fetchRoadRoute = useCallback(async () => {
+        if (stops.length < 2) {
+            setRouteCoordinates(stops.length === 1 ? [{ latitude: stops[0].lat, longitude: stops[0].lng }] : []);
+            return;
+        }
+        setRouteLoading(true);
+        setRouteCoordinates([]);
+        try {
+            const coords = await getRoadRouteNative(stops.map((s) => ({ lat: s.lat, lng: s.lng })));
+            setRouteCoordinates(coords ?? stops.map((s) => ({ latitude: s.lat, longitude: s.lng })));
+        } catch {
+            setRouteCoordinates(stops.map((s) => ({ latitude: s.lat, longitude: s.lng })));
+        } finally {
+            setRouteLoading(false);
+        }
+    }, [stops]);
+
+    useEffect(() => {
+        fetchRoadRoute();
+    }, [fetchRoadRoute]);
+
+    const lineCoordinates = routeCoordinates.length > 0 ? routeCoordinates : stops.map(s => ({ latitude: s.lat, longitude: s.lng }));
 
     // 3. THE ROBOT (EFFECTS) 🤖
     // This runs automatically exactly ONE time when the app starts (because of the empty [] at the end).
@@ -156,6 +185,11 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
     // 6. THE MAIN SCREEN (RENDER) 🎨
     return (
         <View style={styles.container}>
+            {routeLoading && (
+                <View style={styles.routeLoading}>
+                    <Text style={styles.routeLoadingText}>Beregner rute ad vejene...</Text>
+                </View>
+            )}
             {/* The Window to the World */}
             <MapView
                 ref={mapRef} // Connect the "Remote Control" to this map
@@ -170,11 +204,11 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
                 showsUserLocation={hasPermission}
                 showsMyLocationButton={true}
             >
-                {/* The Blue Line connecting the dots */}
+                {/* The Blue Line: follows real roads (fastest route, no ferries) */}
                 <Polyline
-                    coordinates={stops.map(stop => ({ latitude: stop.lat, longitude: stop.lng }))}
+                    coordinates={lineCoordinates}
                     strokeColor="#0000FF"
-                    strokeWidth={3}
+                    strokeWidth={4}
                 />
 
                 {/* The Pins (We loop through our memory of 'stops' and draw a pin for each one) */}
@@ -284,5 +318,21 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
         fontSize: 16,
+    },
+    routeLoading: {
+        position: 'absolute',
+        top: 12,
+        left: 12,
+        right: 12,
+        zIndex: 1000,
+        backgroundColor: 'rgba(255,255,255,0.9)',
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    routeLoadingText: {
+        fontSize: 14,
+        color: '#333',
     },
 });
