@@ -73,6 +73,7 @@ export default function DeliveryRoutesScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [adminKnown, setAdminKnown] = useState(false);
+  const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     getUser().then((user) => {
@@ -252,13 +253,16 @@ export default function DeliveryRoutesScreen() {
           </View>
         </View>
 
-        {/* Liste over stop, sorteret efter rækkefølge */}
-        {item.stops && item.stops.length > 0 && (
-          <View style={styles.stopsList}>
-            <Text style={styles.stopsHeader}>Stop</Text>
-            {item.stops
-              .sort((a, b) => a.sequence - b.sequence)
-              .map((stop, index) => (
+        {/* Liste over stop, sorteret efter rækkefølge – viser kun 3 som standard */}
+        {item.stops && item.stops.length > 0 && (() => {
+          const sorted = [...item.stops].sort((a, b) => a.sequence - b.sequence);
+          const isExpanded = expandedCards.has(item.id);
+          const visibleStops = isExpanded ? sorted : sorted.slice(0, 3);
+          const hasMore = sorted.length > 3;
+          return (
+            <View style={styles.stopsList}>
+              <Text style={styles.stopsHeader}>Stop</Text>
+              {visibleStops.map((stop, index) => (
                 <View key={index} style={styles.stopItem}>
                   <Text style={styles.stopSequence}>{stop.sequence}.</Text>
                   <View style={styles.stopInfo}>
@@ -269,8 +273,29 @@ export default function DeliveryRoutesScreen() {
                   </View>
                 </View>
               ))}
-          </View>
-        )}
+              {hasMore && (
+                <TouchableOpacity
+                  style={styles.expandButton}
+                  onPress={() => {
+                    setExpandedCards((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(item.id)) {
+                        next.delete(item.id);
+                      } else {
+                        next.add(item.id);
+                      }
+                      return next;
+                    });
+                  }}
+                >
+                  <Text style={styles.expandButtonText}>
+                    {isExpanded ? 'Vis færre' : `Vis alle ${sorted.length} stop`}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          );
+        })()}
       </TouchableOpacity>
       {isAdminUser && (
         <TouchableOpacity
@@ -509,6 +534,16 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#888',
     marginTop: 2,
+  },
+  expandButton: {
+    marginTop: 8,
+    paddingVertical: 6,
+    alignItems: 'center',
+  },
+  expandButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1e88e5',
   },
   loadingText: {
     marginTop: 12,
