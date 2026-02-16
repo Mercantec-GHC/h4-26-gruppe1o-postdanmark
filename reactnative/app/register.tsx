@@ -1,19 +1,23 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { API_BASE } from '../services/config';
 import { playSoundEffect } from '../services/soundEffects';
+
+// 1. IMPORTER KAMÆLEONERNE
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_.-]+$/;
 
@@ -27,31 +31,26 @@ const RegisterScreen: React.FC = () => {
   const [error, setError] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState(false);
 
+  // ... (validate function er uændret) ...
   const validate = () => {
     if (!name || !email || !password || !confirmPassword) {
-      setError('Udfyld alle felter.');
-      return false;
+      setError('Udfyld alle felter.'); return false;
     }
     if (name.length < 3 || name.length > 32) {
-      setError('Brugernavn skal være mellem 3 og 32 tegn.');
-      return false;
+      setError('Brugernavn skal være mellem 3 og 32 tegn.'); return false;
     }
     if (!USERNAME_REGEX.test(name)) {
-      setError('Brugernavn må kun indeholde bogstaver, tal, _, . og -.');
-      return false;
+      setError('Brugernavn må kun indeholde bogstaver, tal, _, . og -.'); return false;
     }
     const emailRegex = /[^@\s]+@[^@\s]+\.[^@\s]+/;
     if (!emailRegex.test(email)) {
-      setError('Indtast en gyldig e-mailadresse.');
-      return false;
+      setError('Indtast en gyldig e-mailadresse.'); return false;
     }
     if (password.length < 8) {
-      setError('Adgangskoden skal være mindst 8 tegn.');
-      return false;
+      setError('Adgangskoden skal være mindst 8 tegn.'); return false;
     }
     if (password !== confirmPassword) {
-      setError('Adgangskoderne matcher ikke.');
-      return false;
+      setError('Adgangskoderne matcher ikke.'); return false;
     }
     return true;
   };
@@ -63,7 +62,6 @@ const RegisterScreen: React.FC = () => {
       playSoundEffect(require("../sound-effects/error.wav"));
       return;
     }
-
     try {
       setLoading(true);
       const res = await fetch(`${API_BASE}/api/Auth/register`, {
@@ -76,12 +74,9 @@ const RegisterScreen: React.FC = () => {
         throw new Error(text || `Registration failed (${res.status})`);
       }
       setSuccess(true);
-        playSoundEffect(require("../sound-effects/honk-honk.wav"));
+      playSoundEffect(require("../sound-effects/honk-honk.wav"));
       Alert.alert('Konto oprettet', 'Din konto er oprettet. Du kan nu logge ind.', [
-        {
-          text: 'OK',
-          onPress: () => router.replace('/login'),
-        },
+        { text: 'OK', onPress: () => router.replace('/login') },
       ]);
     } catch (e: any) {
       console.error('Register error', e);
@@ -96,94 +91,101 @@ const RegisterScreen: React.FC = () => {
   const goToLogin = () => router.replace('/login');
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <Text style={styles.welcomeText}>Opret konto</Text>
+      // 2. YDERSTE CONTAINER: ThemedView (Hvid/Sort baggrund)
+      <ThemedView style={{ flex: 1 }}>
+        <SafeAreaView style={styles.container}>
+          <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Brugernavn</Text>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              placeholder="3-32 tegn (bogstaver, tal, _, . eller -)"
-              placeholderTextColor="#888"
-              value={name}
-              onChangeText={setName}
-              autoCapitalize="none"
-              autoCorrect={false}
-              returnKeyType="next"
-            />
-          </View>
-        </View>
+            {/* 3. OVERSKRIFT */}
+            <ThemedText type="title" style={styles.welcomeText}>Opret konto</ThemedText>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Email</Text>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              placeholder="Indtast din e-mail"
-              placeholderTextColor="#888"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              returnKeyType="next"
-            />
-          </View>
-        </View>
+            {/* INPUTS - Labels er nu ThemedText */}
+            <View style={styles.inputContainer}>
+              <ThemedText type="defaultSemiBold" style={styles.label}>Brugernavn</ThemedText>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                    style={styles.input}
+                    placeholder="3-32 tegn (bogstaver, tal, _, . eller -)"
+                    placeholderTextColor="#888"
+                    value={name}
+                    onChangeText={setName}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    returnKeyType="next"
+                />
+              </View>
+            </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Adgangskode</Text>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              placeholder="Mindst 8 tegn"
-              placeholderTextColor="#888"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              returnKeyType="next"
-            />
-          </View>
-        </View>
+            <View style={styles.inputContainer}>
+              <ThemedText type="defaultSemiBold" style={styles.label}>Email</ThemedText>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Indtast din e-mail"
+                    placeholderTextColor="#888"
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    returnKeyType="next"
+                />
+              </View>
+            </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Bekræft adgangskode</Text>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              placeholder="Gentag adgangskoden"
-              placeholderTextColor="#888"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              returnKeyType="done"
-            />
-          </View>
-        </View>
+            <View style={styles.inputContainer}>
+              <ThemedText type="defaultSemiBold" style={styles.label}>Adgangskode</ThemedText>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Mindst 8 tegn"
+                    placeholderTextColor="#888"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                    returnKeyType="next"
+                />
+              </View>
+            </View>
 
-        {!!success && <Text style={styles.successText}>Kontoen blev oprettet!</Text>}
-        {!!error && <Text style={styles.errorText}>{error}</Text>}
+            <View style={styles.inputContainer}>
+              <ThemedText type="defaultSemiBold" style={styles.label}>Bekræft adgangskode</ThemedText>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Gentag adgangskoden"
+                    placeholderTextColor="#888"
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry
+                    returnKeyType="done"
+                />
+              </View>
+            </View>
 
-        <TouchableOpacity style={styles.registerButton} onPress={handleRegister} disabled={loading}>
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.registerButtonText}>Register</Text>}
-        </TouchableOpacity>
+            {!!success && <Text style={styles.successText}>Kontoen blev oprettet!</Text>}
+            {!!error && <Text style={styles.errorText}>{error}</Text>}
 
-        <View style={styles.loginRow}>
-          <Text style={styles.loginPrompt}>Har du allerede en konto?</Text>
-          <TouchableOpacity onPress={goToLogin} disabled={loading}>
-            <Text style={styles.loginText}>Log ind</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+            <TouchableOpacity style={styles.registerButton} onPress={handleRegister} disabled={loading}>
+              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.registerButtonText}>Register</Text>}
+            </TouchableOpacity>
+
+            <View style={styles.loginRow}>
+              {/* 4. BUNDTEKST: ThemedText så den kan ses i mørke */}
+              <ThemedText style={styles.loginPrompt}>Har du allerede en konto?</ThemedText>
+              <TouchableOpacity onPress={goToLogin} disabled={loading}>
+                <Text style={styles.loginText}>Log ind</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </ThemedView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    // backgroundColor: '#fff', <--- SLETTET
   },
   scrollContent: {
     flexGrow: 1,
@@ -192,8 +194,8 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#000',
+    // fontWeight: 'bold', <--- ThemedText type="title" klarer dette
+    // color: '#000',      <--- SLETTET
     textAlign: 'center',
     marginBottom: 40,
     ...Platform.select({
@@ -207,14 +209,9 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
     marginBottom: 8,
-    ...Platform.select({
-      ios: { fontFamily: 'System', fontWeight: '600' },
-      android: { fontFamily: 'sans-serif-medium', fontWeight: '600' },
-      default: {},
-    }),
+    // color: '#333', <--- SLETTET
+    // fontWeight beholder vi måske, men ThemedText type="defaultSemiBold" klarer det også
   },
   inputWrapper: {
     height: 50,
@@ -256,11 +253,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#fff',
-    ...Platform.select({
-      ios: { fontFamily: 'System', fontWeight: '700' },
-      android: { fontFamily: 'sans-serif-medium', fontWeight: '700' },
-      default: {},
-    }),
   },
   loginRow: {
     marginTop: 16,
@@ -271,7 +263,7 @@ const styles = StyleSheet.create({
   },
   loginPrompt: {
     fontSize: 14,
-    color: '#333',
+    // color: '#333', <--- SLETTET
   },
   loginText: {
     fontSize: 14,

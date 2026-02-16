@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
+  // Text, <--- UDSKIFTES MED ThemedText
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -14,11 +14,16 @@ import {
   Modal,
   Pressable,
   FlatList,
+  Text, // Vi beholder Text til nogle få steder (fx inde i knapper med fast farve), men bruger ThemedText til resten
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { API_BASE } from '@/services/config';
 import { getToken } from '@/services/tokenStorage';
 import { getUser } from '@/services/userStorage';
+
+// 1. IMPORTER KAMÆLEONERNE 🦎
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
 
 type UserOption = { id: number; name: string; email: string };
 
@@ -47,11 +52,11 @@ export default function CreateRouteScreen() {
         if (res.ok) {
           const data = await res.json();
           setUsers(
-            (data as { id: number; name: string; email: string }[]).map((u) => ({
-              id: u.id,
-              name: u.name,
-              email: u.email,
-            }))
+              (data as { id: number; name: string; email: string }[]).map((u) => ({
+                id: u.id,
+                name: u.name,
+                email: u.email,
+              }))
           );
         }
       } catch (e) {
@@ -157,149 +162,164 @@ export default function CreateRouteScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      // 2. YDERSTE CONTAINER: ThemedView (Sort/Hvid baggrund)
+      <ThemedView style={{ flex: 1 }}>
+        <SafeAreaView style={styles.container}>
+          <StatusBar barStyle="default" />
 
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Opret ny rute</Text>
-      </View>
+          {/* Header Container */}
+          <ThemedView style={styles.header}>
+            <ThemedText type="title" style={styles.headerTitle}>Opret ny rute</ThemedText>
+          </ThemedView>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <View style={styles.field}>
-          <Text style={styles.label}>Rutenavn (valgfri)</Text>
-          <TextInput
-            style={styles.input}
-            value={name}
-            onChangeText={setName}
-            placeholder="F.eks. Rute Nord"
-            placeholderTextColor="#888"
-          />
-        </View>
+          <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Dato (DD-MM-ÅÅÅÅ)</Text>
-          <TextInput
-            style={styles.input}
-            value={scheduledDate}
-            onChangeText={setScheduledDate}
-            placeholder="15-02-2026"
-            placeholderTextColor="#888"
-          />
-        </View>
+            {/* Rutenavn */}
+            <View style={styles.field}>
+              <ThemedText type="defaultSemiBold" style={styles.label}>Rutenavn (valgfri)</ThemedText>
+              <TextInput
+                  style={styles.input}
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="F.eks. Rute Nord"
+                  placeholderTextColor="#888"
+              />
+            </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>Tildel bruger</Text>
-          {loadingUsers ? (
-            <ActivityIndicator size="small" color="#1976d2" style={styles.loader} />
-          ) : (
-            <>
-              <Pressable
-                style={styles.dropdownTrigger}
-                onPress={() => setUserDropdownOpen(true)}
-              >
-                <Text style={styles.dropdownTriggerText}>{assignedUserLabel}</Text>
-                <Text style={styles.dropdownChevron}>▼</Text>
-              </Pressable>
-              <Modal
-                visible={userDropdownOpen}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setUserDropdownOpen(false)}
-              >
-                <Pressable style={styles.dropdownBackdrop} onPress={() => setUserDropdownOpen(false)}>
-                  <View style={styles.dropdownModal}>
-                    <Text style={styles.dropdownModalTitle}>Vælg bruger</Text>
-                    <FlatList
-                      data={[{ id: null, name: 'Vælg...', email: '' }, ...users]}
-                      keyExtractor={(item) => (item.id === null ? '_none' : String(item.id))}
-                      renderItem={({ item }) => (
-                        <Pressable
-                          style={[styles.dropdownItem, assignedUserId === item.id && styles.dropdownItemActive]}
-                          onPress={() => {
-                            setAssignedUserId(item.id);
-                            setUserDropdownOpen(false);
-                          }}
-                        >
-                          <Text style={[styles.dropdownItemText, assignedUserId === item.id && styles.dropdownItemTextActive]}>
-                            {item.name}
-                          </Text>
-                        </Pressable>
-                      )}
-                      style={styles.dropdownList}
+            {/* Dato */}
+            <View style={styles.field}>
+              <ThemedText type="defaultSemiBold" style={styles.label}>Dato (DD-MM-ÅÅÅÅ)</ThemedText>
+              <TextInput
+                  style={styles.input}
+                  value={scheduledDate}
+                  onChangeText={setScheduledDate}
+                  placeholder="15-02-2026"
+                  placeholderTextColor="#888"
+              />
+            </View>
+
+            {/* Vælg Bruger (Dropdown) */}
+            <View style={styles.field}>
+              <ThemedText type="defaultSemiBold" style={styles.label}>Tildel bruger</ThemedText>
+              {loadingUsers ? (
+                  <ActivityIndicator size="small" color="#1976d2" style={styles.loader} />
+              ) : (
+                  <>
+                    <Pressable
+                        style={styles.dropdownTrigger}
+                        onPress={() => setUserDropdownOpen(true)}
+                    >
+                      <Text style={styles.dropdownTriggerText}>{assignedUserLabel}</Text>
+                      <Text style={styles.dropdownChevron}>▼</Text>
+                    </Pressable>
+
+                    <Modal
+                        visible={userDropdownOpen}
+                        transparent
+                        animationType="fade"
+                        onRequestClose={() => setUserDropdownOpen(false)}
+                    >
+                      <Pressable style={styles.dropdownBackdrop} onPress={() => setUserDropdownOpen(false)}>
+                        {/* Selve menuen bliver nu også ThemedView */}
+                        <ThemedView style={styles.dropdownModal}>
+                          <ThemedText type="subtitle" style={styles.dropdownModalTitle}>Vælg bruger</ThemedText>
+                          <FlatList
+                              data={[{ id: null, name: 'Vælg...', email: '' }, ...users]}
+                              keyExtractor={(item) => (item.id === null ? '_none' : String(item.id))}
+                              renderItem={({ item }) => (
+                                  <Pressable
+                                      style={[styles.dropdownItem, assignedUserId === item.id && styles.dropdownItemActive]}
+                                      onPress={() => {
+                                        setAssignedUserId(item.id);
+                                        setUserDropdownOpen(false);
+                                      }}
+                                  >
+                                    <ThemedText style={[styles.dropdownItemText, assignedUserId === item.id && styles.dropdownItemTextActive]}>
+                                      {item.name}
+                                    </ThemedText>
+                                  </Pressable>
+                              )}
+                              style={styles.dropdownList}
+                          />
+                          <TouchableOpacity style={styles.dropdownCloseBtn} onPress={() => setUserDropdownOpen(false)}>
+                            <Text style={styles.dropdownCloseBtnText}>Luk</Text>
+                          </TouchableOpacity>
+                        </ThemedView>
+                      </Pressable>
+                    </Modal>
+                  </>
+              )}
+            </View>
+
+            {/* Adresser */}
+            <View style={styles.field}>
+              <View style={styles.labelRow}>
+                <ThemedText type="defaultSemiBold" style={styles.label}>Adresser</ThemedText>
+                <TouchableOpacity onPress={addAddress} style={styles.addAddressBtn}>
+                  <Text style={styles.addAddressBtnText}>+ Tilføj adresse</Text>
+                </TouchableOpacity>
+              </View>
+              {addresses.map((addr, index) => (
+                  <View key={index} style={styles.addressRow}>
+                    <TextInput
+                        style={[styles.input, styles.addressInput]}
+                        value={addr}
+                        onChangeText={(v) => setAddress(index, v)}
+                        placeholder={`Adresse ${index + 1}`}
+                        placeholderTextColor="#888"
                     />
-                    <TouchableOpacity style={styles.dropdownCloseBtn} onPress={() => setUserDropdownOpen(false)}>
-                      <Text style={styles.dropdownCloseBtnText}>Luk</Text>
+                    <TouchableOpacity
+                        onPress={() => removeAddress(index)}
+                        style={styles.removeBtn}
+                        disabled={addresses.length <= 1}
+                    >
+                      <Text style={[styles.removeBtnText, addresses.length <= 1 && styles.removeBtnTextDisabled]}>Fjern</Text>
                     </TouchableOpacity>
                   </View>
-                </Pressable>
-              </Modal>
-            </>
-          )}
-        </View>
-
-        <View style={styles.field}>
-          <View style={styles.labelRow}>
-            <Text style={styles.label}>Adresser</Text>
-            <TouchableOpacity onPress={addAddress} style={styles.addAddressBtn}>
-              <Text style={styles.addAddressBtnText}>+ Tilføj adresse</Text>
-            </TouchableOpacity>
-          </View>
-          {addresses.map((addr, index) => (
-            <View key={index} style={styles.addressRow}>
-              <TextInput
-                style={[styles.input, styles.addressInput]}
-                value={addr}
-                onChangeText={(v) => setAddress(index, v)}
-                placeholder={`Adresse ${index + 1}`}
-                placeholderTextColor="#888"
-              />
-              <TouchableOpacity
-                onPress={() => removeAddress(index)}
-                style={styles.removeBtn}
-                disabled={addresses.length <= 1}
-              >
-                <Text style={[styles.removeBtnText, addresses.length <= 1 && styles.removeBtnTextDisabled]}>Fjern</Text>
-              </TouchableOpacity>
+              ))}
             </View>
-          ))}
-        </View>
 
-        <TouchableOpacity
-          style={[styles.submitBtn, submitting && styles.submitBtnDisabled]}
-          onPress={handleSubmit}
-          disabled={submitting}
-        >
-          {submitting ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.submitBtnText}>Opret rute</Text>
-          )}
-        </TouchableOpacity>
+            {/* Knapper */}
+            <TouchableOpacity
+                style={[styles.submitBtn, submitting && styles.submitBtnDisabled]}
+                onPress={handleSubmit}
+                disabled={submitting}
+            >
+              {submitting ? (
+                  <ActivityIndicator color="#fff" />
+              ) : (
+                  <Text style={styles.submitBtnText}>Opret rute</Text>
+              )}
+            </TouchableOpacity>
 
-        <TouchableOpacity style={styles.cancelBtn} onPress={() => router.replace('/(tabs)/deliveryroutes')}>
-          <Text style={styles.cancelBtnText}>Annuller</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </SafeAreaView>
+            <TouchableOpacity style={styles.cancelBtn} onPress={() => router.replace('/(tabs)/deliveryroutes')}>
+              <Text style={styles.cancelBtnText}>Annuller</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </SafeAreaView>
+      </ThemedView>
   );
 }
 
+// ---------------------------------------------------------
+// STYLES
+// Fjernet faste baggrundsfarver og tekstfarver, hvor ThemedView/Text tager over
+// ---------------------------------------------------------
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    // backgroundColor: '#f5f5f5', <--- SLETTET
   },
   header: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#fff',
+    // backgroundColor: '#fff', <--- SLETTET (ThemedView styrer det)
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#333',
+    // fontSize: 24, fontWeight: '600' osv. styres nu af type="title" i ThemedText, men vi kan beholde lidt layout styles hvis nødvendigt
+    // color: '#333', <--- SLETTET
   },
   scrollView: {
     flex: 1,
@@ -309,10 +329,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   label: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
     marginBottom: 8,
+    // fontSize: 16, fontWeight: '500', color: '#333' <--- SLETTET (styres af ThemedText)
   },
   labelRow: {
     flexDirection: 'row',
@@ -321,14 +339,14 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: '#fff', // Beholder hvide inputfelter for kontrast
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e0e0e0',
     paddingHorizontal: 12,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#333',
+    color: '#333', // Tekst inde i inputtet forbliver mørk
     ...(Platform.select({ web: { outlineStyle: 'none' } as Record<string, unknown>, default: {} }) as object),
   },
   addressInput: {
@@ -389,7 +407,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   dropdownModal: {
-    backgroundColor: '#fff',
+    // backgroundColor: '#fff', <--- SLETTET (ThemedView styrer det)
     borderRadius: 12,
     width: '100%',
     maxWidth: 320,
@@ -397,13 +415,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   dropdownModalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
+    // color: '#333', <--- SLETTET
   },
   dropdownList: {
     maxHeight: 280,
@@ -415,11 +431,11 @@ const styles = StyleSheet.create({
     borderBottomColor: '#f0f0f0',
   },
   dropdownItemActive: {
-    backgroundColor: '#e3f2fd',
+    backgroundColor: '#e3f2fd', // Aktiv farve beholder vi (lyseblå)
   },
   dropdownItemText: {
     fontSize: 16,
-    color: '#333',
+    // color: '#333', <--- SLETTET
   },
   dropdownItemTextActive: {
     color: '#1976d2',
