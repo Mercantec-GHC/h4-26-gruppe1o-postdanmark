@@ -110,6 +110,36 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
 
     const lineCoordinates = routeCoordinates.length > 0 ? routeCoordinates : stops.map(s => ({ latitude: s.lat, longitude: s.lng }));
 
+    // Initial map region: focus on first stop when we have a route, else default
+    const firstStop = stops[0];
+    const initialRegion = firstStop
+        ? {
+            latitude: firstStop.lat,
+            longitude: firstStop.lng,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+        }
+        : {
+            latitude: 57.02350,
+            longitude: 9.87903,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+        };
+
+    // When route (initialStops) changes, fly camera to the new first stop
+    useEffect(() => {
+        if (initialStops && initialStops.length > 0 && mapRef.current) {
+            const sorted = [...initialStops].sort((a, b) => a.sequence - b.sequence);
+            const first = sorted[0];
+            mapRef.current.animateToRegion({
+                latitude: first.latitude,
+                longitude: first.longitude,
+                latitudeDelta: 0.0922,
+                longitudeDelta: 0.0421,
+            }, 500);
+        }
+    }, [initialStops]);
+
     // 3. THE ROBOT (EFFECTS) 🤖
     // This runs automatically exactly ONE time when the app starts (because of the empty [] at the end).
     useEffect(() => {
@@ -194,12 +224,7 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
             <MapView
                 ref={mapRef} // Connect the "Remote Control" to this map
                 style={styles.map}
-                initialRegion={{ // Where do we look when the app opens?
-                    latitude: 57.02350,
-                    longitude: 9.87903,
-                    latitudeDelta: 0.0922,
-                    longitudeDelta: 0.0421,
-                }}
+                initialRegion={initialRegion}
                 // Only show the user's Blue Dot if we have permission
                 showsUserLocation={hasPermission}
                 showsMyLocationButton={true}

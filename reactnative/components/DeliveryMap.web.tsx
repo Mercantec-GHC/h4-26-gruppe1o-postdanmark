@@ -215,6 +215,12 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
     // Unpack the tools from Memory so we can use them easily
     const { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker } = MapModule;
 
+    // Initial map focus: first stop when we have a route, else default
+    const firstStop = stops[0];
+    const mapCenter: [number, number] = firstStop
+        ? [firstStop.lat, firstStop.lng]
+        : [57.02350, 9.87903];
+
     // 7. THE MAIN SCREEN (RENDER) 🎨
     return (
         <View style={styles.container}>
@@ -240,7 +246,7 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
             `}</style>
 
             <MapContainer
-                center={[57.02350, 9.87903]}
+                center={mapCenter}
                 zoom={13}
                 style={{ height: '100%', width: '100%' }}
             >
