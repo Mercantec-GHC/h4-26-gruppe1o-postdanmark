@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -9,13 +9,13 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { API_BASE } from '@/services/config';
-import { getToken } from '@/services/tokenStorage';
-import { getUser, isAdmin } from '@/services/userStorage';
+} from "react-native";
+import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { API_BASE } from "@/services/config";
+import { getToken } from "@/services/tokenStorage";
+import { getUser, isAdmin } from "@/services/userStorage";
 
 // TypeScript interfaces der matcher API-responsens datastruktur
 
@@ -55,7 +55,7 @@ interface DeliveryRoute {
  */
 function getUserIdFromToken(token: string): number | null {
   try {
-    const payload = token.split('.')[1];
+    const payload = token.split(".")[1];
     const decoded = JSON.parse(atob(payload));
     const userId = decoded.userId ?? decoded.nameid ?? decoded.sub;
     return userId ? Number(userId) : null;
@@ -74,6 +74,7 @@ export default function DeliveryRoutesScreen() {
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [adminKnown, setAdminKnown] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   useEffect(() => {
     getUser().then((user) => {
@@ -91,15 +92,16 @@ export default function DeliveryRoutesScreen() {
 
       const token = await getToken();
       if (!token) {
-        setError('Ikke autentificeret. Log venligst ind.');
+        setError("Ikke autentificeret. Log venligst ind.");
         return;
       }
 
       const userId = getUserIdFromToken(token);
       if (!userId) {
-        setError('Kunne ikke bestemme bruger. Log venligst ind igen.');
+        setError("Kunne ikke bestemme bruger. Log venligst ind igen.");
         return;
       }
+      setCurrentUserId(userId);
 
       const url = isAdminUser
         ? `${API_BASE}/api/DeliveryRoute`
@@ -107,7 +109,7 @@ export default function DeliveryRoutesScreen() {
       const res = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
@@ -118,8 +120,8 @@ export default function DeliveryRoutesScreen() {
       const data: DeliveryRoute[] = await res.json();
       setRoutes(data);
     } catch (e: any) {
-      console.error('Error fetching delivery routes:', e);
-      setError(e?.message || 'Kunne ikke indlæse ruter.');
+      console.error("Error fetching delivery routes:", e);
+      setError(e?.message || "Kunne ikke indlæse ruter.");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -138,7 +140,7 @@ export default function DeliveryRoutesScreen() {
   }, [fetchRoutes]);
 
   const handleCreateRoute = () => {
-    router.push('/(tabs)/createroutes');
+    router.push("/(tabs)/createroutes");
   };
 
   const deleteRoute = async (item: DeliveryRoute) => {
@@ -146,38 +148,42 @@ export default function DeliveryRoutesScreen() {
     if (!token) return;
     try {
       const res = await fetch(`${API_BASE}/api/DeliveryRoute/${item.id}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         setRoutes((prev) => prev.filter((r) => r.id !== item.id));
       } else {
-        if (Platform.OS === 'web') {
-          window.alert('Kunne ikke slette ruten.');
+        if (Platform.OS === "web") {
+          window.alert("Kunne ikke slette ruten.");
         } else {
-          Alert.alert('Fejl', 'Kunne ikke slette ruten.');
+          Alert.alert("Fejl", "Kunne ikke slette ruten.");
         }
       }
     } catch (e: any) {
-      const msg = e?.message || 'Kunne ikke slette ruten.';
-      if (Platform.OS === 'web') {
+      const msg = e?.message || "Kunne ikke slette ruten.";
+      if (Platform.OS === "web") {
         window.alert(msg);
       } else {
-        Alert.alert('Fejl', msg);
+        Alert.alert("Fejl", msg);
       }
     }
   };
 
   const handleDeleteRoute = (item: DeliveryRoute) => {
-    const message = `Er du sikker på, at du vil slette ruten "${item.name || 'Uden navn'}"?`;
-    if (Platform.OS === 'web') {
+    const message = `Er du sikker på, at du vil slette ruten "${item.name || "Uden navn"}"?`;
+    if (Platform.OS === "web") {
       if (window.confirm(message)) {
         deleteRoute(item);
       }
     } else {
-      Alert.alert('Slet rute', message, [
-        { text: 'Annuller', style: 'cancel' },
-        { text: 'Slet', style: 'destructive', onPress: () => deleteRoute(item) },
+      Alert.alert("Slet rute", message, [
+        { text: "Annuller", style: "cancel" },
+        {
+          text: "Slet",
+          style: "destructive",
+          onPress: () => deleteRoute(item),
+        },
       ]);
     }
   };
@@ -185,14 +191,102 @@ export default function DeliveryRoutesScreen() {
   // Returnerer en farve baseret på rutens status
   const getStatusColor = (statusName: string) => {
     switch (statusName?.toLowerCase()) {
-      case 'completed':
-        return '#4caf50'; // Grøn for fuldført
-      case 'in progress':
-        return '#ff9800'; // Orange for igangværende
-      case 'pending':
-        return '#2196f3'; // Blå for afventende
+      case "completed":
+        return "#4caf50"; // Grøn for fuldført
+      case "active":
+        return "#ff9800"; // Orange for aktiv
+      case "assigned":
+        return "#2196f3"; // Blå for tildelt
+      case "pending":
+        return "#78909c"; // Grå-blå for afventende
+      case "cancelled":
+        return "#d32f2f"; // Rød for annulleret
       default:
-        return '#9e9e9e'; // Grå for ukendt status
+        return "#9e9e9e"; // Grå for ukendt status
+    }
+  };
+
+  // Opdaterer status for en rute via API
+  const updateRouteStatus = async (routeId: number, routeStatusId: number) => {
+    const token = await getToken();
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/RouteStatus/route/${routeId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ routeStatusId }),
+      });
+      if (res.ok) {
+        fetchRoutes();
+      } else {
+        const msg = "Kunne ikke opdatere status.";
+        if (Platform.OS === "web") {
+          window.alert(msg);
+        } else {
+          Alert.alert("Fejl", msg);
+        }
+      }
+    } catch (e: any) {
+      const msg = e?.message || "Kunne ikke opdatere status.";
+      if (Platform.OS === "web") {
+        window.alert(msg);
+      } else {
+        Alert.alert("Fejl", msg);
+      }
+    }
+  };
+
+  // Returnerer den næste handling baseret på nuværende status
+  const getNextAction = (
+    item: DeliveryRoute,
+  ): {
+    label: string;
+    statusId: number;
+    color: string;
+    bgColor: string;
+  } | null => {
+    switch (item.routeStatusId) {
+      case 2: // Assigned → Active
+        return {
+          label: "Start rute",
+          statusId: 3,
+          color: "#fff",
+          bgColor: "#ff9800",
+        };
+      case 3: // Active → Completed
+        return {
+          label: "Fuldfør rute",
+          statusId: 4,
+          color: "#fff",
+          bgColor: "#4caf50",
+        };
+      default:
+        return null;
+    }
+  };
+
+  // Kan ruten annulleres?
+  const canCancel = (item: DeliveryRoute) =>
+    item.routeStatusId === 2 || item.routeStatusId === 3;
+
+  const handleCancelRoute = (item: DeliveryRoute) => {
+    const message = `Er du sikker på, at du vil annullere ruten "${item.name || "Uden navn"}"?`;
+    if (Platform.OS === "web") {
+      if (window.confirm(message)) {
+        updateRouteStatus(item.id, 5);
+      }
+    } else {
+      Alert.alert("Annuller rute", message, [
+        { text: "Nej", style: "cancel" },
+        {
+          text: "Ja, annuller",
+          style: "destructive",
+          onPress: () => updateRouteStatus(item.id, 5),
+        },
+      ]);
     }
   };
 
@@ -200,7 +294,7 @@ export default function DeliveryRoutesScreen() {
   const handleRoutePress = (item: DeliveryRoute) => {
     if (item.stops && item.stops.length > 0) {
       router.push({
-        pathname: '/(tabs)/map',
+        pathname: "/(tabs)/map",
         params: { stops: JSON.stringify(item.stops) },
       } as unknown as Parameters<typeof router.push>[0]);
     }
@@ -218,7 +312,12 @@ export default function DeliveryRoutesScreen() {
         {/* Kort-header med rutenavn og statusbadge */}
         <View style={styles.cardHeader}>
           <Text style={styles.routeName}>{item.name}</Text>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.statusName) }]}>
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: getStatusColor(item.statusName) },
+            ]}
+          >
             <Text style={styles.statusText}>{item.statusName}</Text>
           </View>
         </View>
@@ -228,24 +327,34 @@ export default function DeliveryRoutesScreen() {
           {isAdminUser && (
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Tildelt:</Text>
-              <Text style={styles.detailValue}>{item.assignedUserName ?? 'Ingen'}</Text>
+              <Text style={styles.detailValue}>
+                {item.assignedUserName ?? "Ingen"}
+              </Text>
             </View>
           )}
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Planlagt dato:</Text>
             <Text style={styles.detailValue}>
               {item.scheduledDate
-                ? item.scheduledDate.split('T')[0].split('-').reverse().join('-')
-                : 'Ikke planlagt'}
+                ? item.scheduledDate
+                    .split("T")[0]
+                    .split("-")
+                    .reverse()
+                    .join("-")
+                : "Ikke planlagt"}
             </Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Afstand:</Text>
-            <Text style={styles.detailValue}>{item.totalDistanceKm.toFixed(1)} km</Text>
+            <Text style={styles.detailValue}>
+              {item.totalDistanceKm.toFixed(1)} km
+            </Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Estimeret varighed:</Text>
-            <Text style={styles.detailValue}>{Math.round(item.estimatedDurationMinutes)} min</Text>
+            <Text style={styles.detailValue}>
+              {Math.round(item.estimatedDurationMinutes)} min
+            </Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Stop:</Text>
@@ -254,58 +363,119 @@ export default function DeliveryRoutesScreen() {
         </View>
 
         {/* Liste over stop, sorteret efter rækkefølge – viser kun 3 som standard */}
-        {item.stops && item.stops.length > 0 && (() => {
-          const sorted = [...item.stops].sort((a, b) => a.sequence - b.sequence);
-          const isExpanded = expandedCards.has(item.id);
-          const visibleStops = isExpanded ? sorted : sorted.slice(0, 3);
-          const hasMore = sorted.length > 3;
-          return (
-            <View style={styles.stopsList}>
-              <Text style={styles.stopsHeader}>Stop</Text>
-              {visibleStops.map((stop, index) => (
-                <View key={index} style={styles.stopItem}>
-                  <Text style={styles.stopSequence}>{stop.sequence}.</Text>
-                  <View style={styles.stopInfo}>
-                    <Text style={styles.stopAddress}>{stop.address}</Text>
-                    {stop.status && (
-                      <Text style={styles.stopStatus}>{stop.status.name}</Text>
-                    )}
+        {item.stops &&
+          item.stops.length > 0 &&
+          (() => {
+            const sorted = [...item.stops].sort(
+              (a, b) => a.sequence - b.sequence,
+            );
+            const isExpanded = expandedCards.has(item.id);
+            const visibleStops = isExpanded ? sorted : sorted.slice(0, 3);
+            const hasMore = sorted.length > 3;
+            return (
+              <View style={styles.stopsList}>
+                <Text style={styles.stopsHeader}>Stop</Text>
+                {visibleStops.map((stop, index) => (
+                  <View key={index} style={styles.stopItem}>
+                    <Text style={styles.stopSequence}>{stop.sequence}.</Text>
+                    <View style={styles.stopInfo}>
+                      <Text style={styles.stopAddress}>{stop.address}</Text>
+                      {stop.status && (
+                        <Text style={styles.stopStatus}>
+                          {stop.status.name}
+                        </Text>
+                      )}
+                    </View>
                   </View>
-                </View>
-              ))}
-              {hasMore && (
-                <TouchableOpacity
-                  style={styles.expandButton}
-                  onPress={() => {
-                    setExpandedCards((prev) => {
-                      const next = new Set(prev);
-                      if (next.has(item.id)) {
-                        next.delete(item.id);
-                      } else {
-                        next.add(item.id);
-                      }
-                      return next;
-                    });
-                  }}
-                >
-                  <Text style={styles.expandButtonText}>
-                    {isExpanded ? 'Vis færre' : `Vis alle ${sorted.length} stop`}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          );
-        })()}
+                ))}
+                {hasMore && (
+                  <TouchableOpacity
+                    style={styles.expandButton}
+                    onPress={() => {
+                      setExpandedCards((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(item.id)) {
+                          next.delete(item.id);
+                        } else {
+                          next.add(item.id);
+                        }
+                        return next;
+                      });
+                    }}
+                  >
+                    <Text style={styles.expandButtonText}>
+                      {isExpanded
+                        ? "Vis færre"
+                        : `Vis alle ${sorted.length} stop`}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            );
+          })()}
       </TouchableOpacity>
-      {isAdminUser && (
-        <TouchableOpacity
-          style={styles.deleteBtn}
-          onPress={() => handleDeleteRoute(item)}
-          accessibilityLabel="Slet rute"
-        >
-          <Text style={styles.deleteBtnText}>Slet</Text>
-        </TouchableOpacity>
-      )}
+
+      {/* Statushandlinger – kun synlige for den bruger ruten er tildelt, + slet for admin */}
+      {(() => {
+        const isAssignedToMe =
+          currentUserId != null && item.assignedUserId === currentUserId;
+        const nextAction = isAssignedToMe ? getNextAction(item) : null;
+        const showCancel = isAssignedToMe && canCancel(item);
+        const showDelete = isAdminUser;
+        if (!nextAction && !showCancel && !showDelete) return null;
+        return (
+          <View style={styles.cardActions}>
+            {nextAction && (
+              <TouchableOpacity
+                style={[
+                  styles.actionBtn,
+                  { backgroundColor: nextAction.bgColor },
+                ]}
+                onPress={() => {
+                  if (nextAction.statusId === 4) {
+                    const message = `Er du sikker på, at ruten "${item.name || "Uden navn"}" er fuldført?`;
+                    if (Platform.OS === "web") {
+                      if (window.confirm(message)) {
+                        updateRouteStatus(item.id, nextAction.statusId);
+                      }
+                    } else {
+                      Alert.alert("Fuldfør rute", message, [
+                        { text: "Nej", style: "cancel" },
+                        { text: "Ja, fuldfør", onPress: () => updateRouteStatus(item.id, nextAction.statusId) },
+                      ]);
+                    }
+                  } else {
+                    updateRouteStatus(item.id, nextAction.statusId);
+                  }
+                }}
+              >
+                <Text
+                  style={[styles.actionBtnText, { color: nextAction.color }]}
+                >
+                  {nextAction.label}
+                </Text>
+              </TouchableOpacity>
+            )}
+            {showCancel && (
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.cancelBtn]}
+                onPress={() => handleCancelRoute(item)}
+              >
+                <Text style={styles.cancelBtnText}>Annuller</Text>
+              </TouchableOpacity>
+            )}
+            {showDelete && (
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.deleteBtn]}
+                onPress={() => handleDeleteRoute(item)}
+                accessibilityLabel="Slet rute"
+              >
+                <Text style={styles.deleteBtnText}>Slet</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        );
+      })()}
     </View>
   );
 
@@ -374,7 +544,7 @@ export default function DeliveryRoutesScreen() {
       {routes.length === 0 ? (
         <View style={styles.centered}>
           <Text style={styles.emptyText}>
-            {isAdminUser ? 'Ingen ruter.' : 'Ingen ruter tildelt til dig.'}
+            {isAdminUser ? "Ingen ruter." : "Ingen ruter tildelt til dig."}
           </Text>
         </View>
       ) : (
@@ -395,37 +565,37 @@ export default function DeliveryRoutesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: "#e0e0e0",
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   addButton: {
     padding: 8,
   },
   centered: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
     padding: 24,
   },
   title: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#333',
+    fontWeight: "700",
+    color: "#333",
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
@@ -435,10 +605,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
@@ -448,29 +618,50 @@ const styles = StyleSheet.create({
   cardTouchable: {
     flex: 1,
   },
-  deleteBtn: {
+  cardActions: {
+    flexDirection: "row",
     marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+    gap: 8,
+    justifyContent: "flex-end",
+  },
+  actionBtn: {
     paddingVertical: 10,
     paddingHorizontal: 16,
-    alignSelf: 'flex-end',
     borderRadius: 8,
-    backgroundColor: '#ffebee',
+  },
+  actionBtnText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  cancelBtn: {
+    backgroundColor: "#fff3e0",
+  },
+  cancelBtnText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#e65100",
+  },
+  deleteBtn: {
+    backgroundColor: "#ffebee",
   },
   deleteBtnText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#c62828',
+    fontWeight: "600",
+    color: "#c62828",
   },
   cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
   routeName: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     flex: 1,
   },
   statusBadge: {
@@ -480,47 +671,47 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   statusText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   cardDetails: {
     gap: 6,
   },
   detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   detailLabel: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   detailValue: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#333',
+    fontWeight: "500",
+    color: "#333",
   },
   stopsList: {
     marginTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: "#eee",
     paddingTop: 12,
   },
   stopsHeader: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginBottom: 8,
   },
   stopItem: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingVertical: 4,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   stopSequence: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#1e88e5',
+    fontWeight: "600",
+    color: "#1e88e5",
     width: 24,
   },
   stopInfo: {
@@ -528,36 +719,36 @@ const styles = StyleSheet.create({
   },
   stopAddress: {
     fontSize: 13,
-    color: '#333',
+    color: "#333",
   },
   stopStatus: {
     fontSize: 11,
-    color: '#888',
+    color: "#888",
     marginTop: 2,
   },
   expandButton: {
     marginTop: 8,
     paddingVertical: 6,
-    alignItems: 'center',
+    alignItems: "center",
   },
   expandButtonText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#1e88e5',
+    fontWeight: "600",
+    color: "#1e88e5",
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   errorText: {
     fontSize: 16,
-    color: '#d32f2f',
-    textAlign: 'center',
+    color: "#d32f2f",
+    textAlign: "center",
   },
   emptyText: {
     fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
   },
 });
