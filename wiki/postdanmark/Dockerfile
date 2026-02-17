@@ -13,11 +13,15 @@ WORKDIR /app
 
 # Kopiér kun package-filer først (udnytter Docker cache ved uændrede dependencies)
 COPY package.json package-lock.json* ./
-# Installer dependencies (npm ci giver reproducerbare builds i modsætning til npm install)
-RUN npm ci
+# Installer dependencies uden postinstall (fumadocs-mdx kræver source.config.ts som ikke er kopieret endnu)
+# Postinstall køres manuelt efter COPY af kildekode nedenfor
+RUN npm ci --ignore-scripts
 
-# Kopiér resten af kildekoden og byg Next.js
+# Kopiér resten af kildekoden (source.config.ts, content/, osv.)
 COPY . .
+# Kør fumadocs-mdx manuelt - genererer .source/ fra source.config.ts (nødvendigt før next build)
+RUN npx fumadocs-mdx
+
 # Byg appen - next.config har output: 'standalone' som laver en selvstændig pakke
 RUN npm run build
 
