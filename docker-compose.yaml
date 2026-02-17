@@ -24,6 +24,17 @@ services:
     networks:
       - app-network
 
+  # Wiki - Fumadocs dokumentation på Next.js
+  # Tilgængelig på http://localhost:4012
+  wiki:
+    build:
+      context: ./wiki/postdanmark   # Mappe der indeholder Dockerfile og kildekode
+      dockerfile: Dockerfile        # Dockerfile til multi-stage Next.js build
+    ports:
+      - "4012:3000"                 # Host-port 4012 -> container-port 3000 (Next.js default)
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
