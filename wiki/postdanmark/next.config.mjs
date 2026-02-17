@@ -9,6 +9,7 @@ const withMDX = createMDX();
 
 /** @type {import('next').NextConfig} */
 const config = {
+  output: 'standalone',
   reactStrictMode: true,
   devIndicators: false,
   turbopack: {
