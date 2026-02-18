@@ -33,18 +33,12 @@ public class User : Common
 
 public class RegisterUserDto
 {
-    // Accept both "name" and an alias "username" from frontend
-    [System.Text.Json.Serialization.JsonPropertyName("name")]
     [Required(ErrorMessage = "Brugernavn er påkrævet.")]
     [MinLength(3, ErrorMessage = "Brugernavn skal være mindst 3 tegn.")]
     [MaxLength(32, ErrorMessage = "Brugernavn må højst være 32 tegn.")]
-    [RegularExpression(@"^[a-zA-Z0-9_.-]+$", ErrorMessage = 
+    [RegularExpression(@"^[a-zA-Z0-9_.-]+$", ErrorMessage =
         "Kun bogstaver, tal, _, . og - er tilladt.")]
     public string? Name { get; set; }
-
-    // Optional alias to support existing clients sending "username"
-    [System.Text.Json.Serialization.JsonPropertyName("username")]
-    public string? Username { get; set; }
     
     [Required(ErrorMessage = "Email er påkrævet.")]
     [EmailAddress(ErrorMessage = "Ugyldig email-adresse.")]
