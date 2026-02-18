@@ -97,4 +97,37 @@ public class LoginTest
         // Assert - vi får Unauthorized (401) tilbage
         Assert.That(result, Is.InstanceOf<UnauthorizedObjectResult>());
     }
+
+    [Test]
+    public async Task Login_NonExistingEmail_ReturnsUnauthorized()
+    {
+        // Arrange - opret in-memory database uden brugere
+        var options = new DbContextOptionsBuilder<AppDBContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+
+        var context = new AppDBContext(options);
+
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                { "Jwt:SecretKey", "SuperSecretTestKeyThatIsLongEnough1234567890" },
+                { "Jwt:Issuer", "test" },
+                { "Jwt:Audience", "test" },
+                { "Jwt:ExpiryMinutes", "60" }
+            })
+            .Build();
+
+        var controller = new AuthController(context, new JwtService(config));
+
+        // Act - log ind med email der ikke eksisterer
+        var result = await controller.Login(new LoginUserDto
+        {
+            Email = "nonexisting@example.com",
+            Password = "Password123!"
+        });
+
+        // Assert - vi får Unauthorized (401) tilbage
+        Assert.That(result, Is.InstanceOf<UnauthorizedObjectResult>());
+    }
 }
