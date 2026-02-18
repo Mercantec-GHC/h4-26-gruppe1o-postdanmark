@@ -1,7 +1,6 @@
 using API.Controllers;
 using API.Data;
 using API.Model;
-using API.Service;
 using API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

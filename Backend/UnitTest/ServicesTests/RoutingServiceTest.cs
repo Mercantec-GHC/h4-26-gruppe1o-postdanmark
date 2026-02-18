@@ -3,7 +3,7 @@ using System.Text;
 using API.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Moq.Protected; // For at kunne mocke HttpMessageHandler som bruges af HttpClient
+using Moq.Protected;
 
 namespace UnitTest.ServicesTests;
 
@@ -32,7 +32,7 @@ public class RoutingServiceTest
     }
 
     [Test]
-    public async Task ReturnsOptimizedSequenceOrder()
+    public async Task OptimizeRoute_ThreeStops_ReturnsOptimizedOrder()
     {
         // Arrange - fake OSRM JSON svar hvor den optimale rækkefølge er: stop 0 → stop 2 → stop 1
         // waypoint_index fortæller hvilken position i den optimerede rute hvert stop har

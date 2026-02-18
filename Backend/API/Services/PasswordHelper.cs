@@ -1,5 +1,5 @@
 using BCrypt.Net;
-namespace API.Service;
+namespace API.Services;
 
 public class PasswordHelper
 {

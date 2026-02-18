@@ -1,14 +1,9 @@
-using API.Service;
+using API.Services;
 
 namespace UnitTest;
 
 public class PasswordHashTest
 {
-    [SetUp]
-    public void Setup()
-    {
-    }
-
     [Test]
     public void PasswordHash_HashesWithBcrypt()
     {
