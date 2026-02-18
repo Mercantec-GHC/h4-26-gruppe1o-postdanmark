@@ -104,3 +104,4 @@ yarn.lock
 
 # Bruno secret environments
 Bruno/**/*.secret.bru
+**/environments/local.bru

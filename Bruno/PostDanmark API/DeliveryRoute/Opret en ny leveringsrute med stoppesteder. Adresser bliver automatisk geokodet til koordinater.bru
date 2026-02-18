@@ -12,210 +12,42 @@ post {
 
 body:json {
   {
-    "name": "",
-    "scheduledDate": "",
-    "userId": 0,
-    "assignedUserId": 0,
+    "name": "{{routeName}}",
+    "scheduledDate": "{{scheduledDate}}",
+    "userId": {{createdUserId}},
     "stops": [
-      {
-        "address": ""
-      }
+      { "address": "Slagelsevej 10, 4200 Slagelse" },
+      { "address": "Vestergade 5, 5000 Odense" },
+      { "address": "Nørregade 2, 8000 Aarhus" }
     ]
   }
 }
 
+script:pre-request {
+  const ts = Date.now();
+  bru.setVar("routeName", `TestRute_${ts}`);
+  bru.setVar("scheduledDate", new Date().toISOString().split("T")[0]);
+}
+
+script:post-response {
+  if (res.status === 201) {
+    const d = typeof res.body === "string" ? JSON.parse(res.body) : (res.body || {});
+    if (d?.id != null) bru.setEnvVar("createdRouteId", String(d.id));
+  }
+}
+
+tests {
+  test("Status er 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  test("Response indeholder id og stops", function() {
+    const d = res.getBody();
+    expect(d).to.have.property("id");
+    expect(d).to.have.property("stops");
+    expect(d.stops).to.be.an("array").that.is.not.empty;
+  });
+}
+
 vars:pre-request {
-  baseUrl: https://postdanmark-api.mercantec.tech/
-}
-
-example {
-  name: 200 Response
-  description: OK
-  
-  request: {
-    url: {{baseUrl}}/api/DeliveryRoute
-    method: POST
-    mode: json
-    body:json: {
-      {
-        "name": "",
-        "scheduledDate": "",
-        "userId": 0,
-        "assignedUserId": 0,
-        "stops": [
-          {
-            "address": ""
-          }
-        ]
-      }
-    }
-  }
-  
-  response: {
-    headers: {
-      Content-Type: text/plain
-    }
-  
-    status: {
-      code: 200
-      text: OK
-    }
-  
-    body: {
-      type: text
-      content: '''
-        {
-          "id": 0,
-          "name": "",
-          "scheduledDate": "",
-          "totalDistanceKm": 0,
-          "estimatedDurationMinutes": 0,
-          "userId": 0,
-          "assignedUserId": 0,
-          "assignedUserName": "",
-          "routeStatusId": 0,
-          "statusName": "",
-          "stops": [
-            {
-              "address": "",
-              "latitude": 0,
-              "longitude": 0,
-              "sequence": 0,
-              "status": {
-                "name": ""
-              }
-            }
-          ]
-        }
-      '''
-    }
-  }
-}
-
-example {
-  name: 200 Response
-  description: OK
-  
-  request: {
-    url: {{baseUrl}}/api/DeliveryRoute
-    method: POST
-    mode: json
-    body:json: {
-      {
-        "name": "",
-        "scheduledDate": "",
-        "userId": 0,
-        "assignedUserId": 0,
-        "stops": [
-          {
-            "address": ""
-          }
-        ]
-      }
-    }
-  }
-  
-  response: {
-    headers: {
-      Content-Type: application/json
-    }
-  
-    status: {
-      code: 200
-      text: OK
-    }
-  
-    body: {
-      type: json
-      content: '''
-        {
-          "id": 0,
-          "name": "",
-          "scheduledDate": "",
-          "totalDistanceKm": 0,
-          "estimatedDurationMinutes": 0,
-          "userId": 0,
-          "assignedUserId": 0,
-          "assignedUserName": "",
-          "routeStatusId": 0,
-          "statusName": "",
-          "stops": [
-            {
-              "address": "",
-              "latitude": 0,
-              "longitude": 0,
-              "sequence": 0,
-              "status": {
-                "name": ""
-              }
-            }
-          ]
-        }
-      '''
-    }
-  }
-}
-
-example {
-  name: 200 Response
-  description: OK
-  
-  request: {
-    url: {{baseUrl}}/api/DeliveryRoute
-    method: POST
-    mode: json
-    body:json: {
-      {
-        "name": "",
-        "scheduledDate": "",
-        "userId": 0,
-        "assignedUserId": 0,
-        "stops": [
-          {
-            "address": ""
-          }
-        ]
-      }
-    }
-  }
-  
-  response: {
-    headers: {
-      Content-Type: text/json
-    }
-  
-    status: {
-      code: 200
-      text: OK
-    }
-  
-    body: {
-      type: json
-      content: '''
-        {
-          "id": 0,
-          "name": "",
-          "scheduledDate": "",
-          "totalDistanceKm": 0,
-          "estimatedDurationMinutes": 0,
-          "userId": 0,
-          "assignedUserId": 0,
-          "assignedUserName": "",
-          "routeStatusId": 0,
-          "statusName": "",
-          "stops": [
-            {
-              "address": "",
-              "latitude": 0,
-              "longitude": 0,
-              "sequence": 0,
-              "status": {
-                "name": ""
-              }
-            }
-          ]
-        }
-      '''
-    }
-  }
+  baseUrl: https://postdanmark-api.mercantec.tech
 }

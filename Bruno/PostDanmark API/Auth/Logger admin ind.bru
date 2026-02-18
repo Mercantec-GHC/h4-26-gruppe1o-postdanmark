@@ -1,7 +1,7 @@
 meta {
-  name: Logger en bruger ind.
+  name: Logger admin ind.
   type: http
-  seq: 2
+  seq: 3
 }
 
 post {
@@ -12,22 +12,16 @@ post {
 
 body:json {
   {
-    "email": "{{e2eEmail}}",
-    "password": "{{e2ePassword}}"
+    "email": "{{adminEmail}}",
+    "password": "{{adminPassword}}"
   }
-}
-
-vars:pre-request {
-  baseUrl: https://postdanmark-api.mercantec.tech
 }
 
 script:post-response {
   if (res.status === 200) {
     const d = typeof res.body === "string" ? JSON.parse(res.body) : (res.body || {});
     const token = d?.token ?? d?.Token;
-    const user = d?.user ?? d?.User;
     if (token) bru.setEnvVar("token", String(token));
-    if (user?.id != null) bru.setEnvVar("createdUserId", String(user.id));
   }
 }
 
@@ -35,10 +29,12 @@ tests {
   test("Status er 200", function() {
     expect(res.getStatus()).to.equal(200);
   });
-  test("Response indeholder token og user", function() {
+  test("Response indeholder token", function() {
     const d = res.getBody();
     expect(d).to.have.property("token");
-    expect(d).to.have.property("user");
-    expect(d.user).to.have.property("id");
   });
+}
+
+vars:pre-request {
+  baseUrl: https://postdanmark-api.mercantec.tech
 }
