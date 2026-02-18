@@ -1,0 +1,221 @@
+meta {
+  name: Opret en ny leveringsrute med stoppesteder. Adresser bliver automatisk geokodet til koordinater.
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/DeliveryRoute
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "name": "",
+    "scheduledDate": "",
+    "userId": 0,
+    "assignedUserId": 0,
+    "stops": [
+      {
+        "address": ""
+      }
+    ]
+  }
+}
+
+vars:pre-request {
+  baseUrl: https://postdanmark-api.mercantec.tech/
+}
+
+example {
+  name: 200 Response
+  description: OK
+  
+  request: {
+    url: {{baseUrl}}/api/DeliveryRoute
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "name": "",
+        "scheduledDate": "",
+        "userId": 0,
+        "assignedUserId": 0,
+        "stops": [
+          {
+            "address": ""
+          }
+        ]
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: text/plain
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: text
+      content: '''
+        {
+          "id": 0,
+          "name": "",
+          "scheduledDate": "",
+          "totalDistanceKm": 0,
+          "estimatedDurationMinutes": 0,
+          "userId": 0,
+          "assignedUserId": 0,
+          "assignedUserName": "",
+          "routeStatusId": 0,
+          "statusName": "",
+          "stops": [
+            {
+              "address": "",
+              "latitude": 0,
+              "longitude": 0,
+              "sequence": 0,
+              "status": {
+                "name": ""
+              }
+            }
+          ]
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 200 Response
+  description: OK
+  
+  request: {
+    url: {{baseUrl}}/api/DeliveryRoute
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "name": "",
+        "scheduledDate": "",
+        "userId": 0,
+        "assignedUserId": 0,
+        "stops": [
+          {
+            "address": ""
+          }
+        ]
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "id": 0,
+          "name": "",
+          "scheduledDate": "",
+          "totalDistanceKm": 0,
+          "estimatedDurationMinutes": 0,
+          "userId": 0,
+          "assignedUserId": 0,
+          "assignedUserName": "",
+          "routeStatusId": 0,
+          "statusName": "",
+          "stops": [
+            {
+              "address": "",
+              "latitude": 0,
+              "longitude": 0,
+              "sequence": 0,
+              "status": {
+                "name": ""
+              }
+            }
+          ]
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 200 Response
+  description: OK
+  
+  request: {
+    url: {{baseUrl}}/api/DeliveryRoute
+    method: POST
+    mode: json
+    body:json: {
+      {
+        "name": "",
+        "scheduledDate": "",
+        "userId": 0,
+        "assignedUserId": 0,
+        "stops": [
+          {
+            "address": ""
+          }
+        ]
+      }
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: text/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "id": 0,
+          "name": "",
+          "scheduledDate": "",
+          "totalDistanceKm": 0,
+          "estimatedDurationMinutes": 0,
+          "userId": 0,
+          "assignedUserId": 0,
+          "assignedUserName": "",
+          "routeStatusId": 0,
+          "statusName": "",
+          "stops": [
+            {
+              "address": "",
+              "latitude": 0,
+              "longitude": 0,
+              "sequence": 0,
+              "status": {
+                "name": ""
+              }
+            }
+          ]
+        }
+      '''
+    }
+  }
+}

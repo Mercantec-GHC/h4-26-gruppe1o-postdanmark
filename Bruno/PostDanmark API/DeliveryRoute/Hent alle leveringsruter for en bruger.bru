@@ -1,0 +1,187 @@
+meta {
+  name: Hent alle leveringsruter for en bruger
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/DeliveryRoute/user/:userId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  userId: 
+}
+
+vars:pre-request {
+  baseUrl: https://postdanmark-api.mercantec.tech/
+}
+
+example {
+  name: 200 Response
+  description: OK
+  
+  request: {
+    url: {{baseUrl}}/api/DeliveryRoute/user/:userId
+    method: GET
+    mode: none
+    params:path: {
+      userId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: text/plain
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: text
+      content: '''
+        [
+          {
+            "id": 0,
+            "name": "",
+            "scheduledDate": "",
+            "totalDistanceKm": 0,
+            "estimatedDurationMinutes": 0,
+            "userId": 0,
+            "assignedUserId": 0,
+            "assignedUserName": "",
+            "routeStatusId": 0,
+            "statusName": "",
+            "stops": [
+              {
+                "address": "",
+                "latitude": 0,
+                "longitude": 0,
+                "sequence": 0,
+                "status": {
+                  "name": ""
+                }
+              }
+            ]
+          }
+        ]
+      '''
+    }
+  }
+}
+
+example {
+  name: 200 Response
+  description: OK
+  
+  request: {
+    url: {{baseUrl}}/api/DeliveryRoute/user/:userId
+    method: GET
+    mode: none
+    params:path: {
+      userId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        [
+          {
+            "id": 0,
+            "name": "",
+            "scheduledDate": "",
+            "totalDistanceKm": 0,
+            "estimatedDurationMinutes": 0,
+            "userId": 0,
+            "assignedUserId": 0,
+            "assignedUserName": "",
+            "routeStatusId": 0,
+            "statusName": "",
+            "stops": [
+              {
+                "address": "",
+                "latitude": 0,
+                "longitude": 0,
+                "sequence": 0,
+                "status": {
+                  "name": ""
+                }
+              }
+            ]
+          }
+        ]
+      '''
+    }
+  }
+}
+
+example {
+  name: 200 Response
+  description: OK
+  
+  request: {
+    url: {{baseUrl}}/api/DeliveryRoute/user/:userId
+    method: GET
+    mode: none
+    params:path: {
+      userId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: text/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        [
+          {
+            "id": 0,
+            "name": "",
+            "scheduledDate": "",
+            "totalDistanceKm": 0,
+            "estimatedDurationMinutes": 0,
+            "userId": 0,
+            "assignedUserId": 0,
+            "assignedUserName": "",
+            "routeStatusId": 0,
+            "statusName": "",
+            "stops": [
+              {
+                "address": "",
+                "latitude": 0,
+                "longitude": 0,
+                "sequence": 0,
+                "status": {
+                  "name": ""
+                }
+              }
+            ]
+          }
+        ]
+      '''
+    }
+  }
+}

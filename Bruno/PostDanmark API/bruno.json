@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "PostDanmark API",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

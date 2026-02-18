@@ -1,0 +1,139 @@
+meta {
+  name: Hent den aktuelle status for et specifikt stop
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/StopStatus/stop/:stopId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  stopId: 
+}
+
+vars:pre-request {
+  baseUrl: https://postdanmark-api.mercantec.tech/
+}
+
+example {
+  name: 200 Response
+  description: OK
+  
+  request: {
+    url: {{baseUrl}}/api/StopStatus/stop/:stopId
+    method: GET
+    mode: none
+    params:path: {
+      stopId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: text/plain
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: text
+      content: '''
+        {
+          "address": "",
+          "latitude": 0,
+          "longitude": 0,
+          "sequence": 0,
+          "status": {
+            "name": ""
+          }
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 200 Response
+  description: OK
+  
+  request: {
+    url: {{baseUrl}}/api/StopStatus/stop/:stopId
+    method: GET
+    mode: none
+    params:path: {
+      stopId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "address": "",
+          "latitude": 0,
+          "longitude": 0,
+          "sequence": 0,
+          "status": {
+            "name": ""
+          }
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 200 Response
+  description: OK
+  
+  request: {
+    url: {{baseUrl}}/api/StopStatus/stop/:stopId
+    method: GET
+    mode: none
+    params:path: {
+      stopId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: text/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "address": "",
+          "latitude": 0,
+          "longitude": 0,
+          "sequence": 0,
+          "status": {
+            "name": ""
+          }
+        }
+      '''
+    }
+  }
+}

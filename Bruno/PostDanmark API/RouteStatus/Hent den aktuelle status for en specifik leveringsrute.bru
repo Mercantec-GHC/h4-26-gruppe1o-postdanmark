@@ -1,0 +1,121 @@
+meta {
+  name: Hent den aktuelle status for en specifik leveringsrute
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/RouteStatus/route/:routeId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  routeId: 
+}
+
+vars:pre-request {
+  baseUrl: https://postdanmark-api.mercantec.tech/
+}
+
+example {
+  name: 200 Response
+  description: OK
+  
+  request: {
+    url: {{baseUrl}}/api/RouteStatus/route/:routeId
+    method: GET
+    mode: none
+    params:path: {
+      routeId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: text/plain
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: text
+      content: '''
+        {
+          "name": ""
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 200 Response
+  description: OK
+  
+  request: {
+    url: {{baseUrl}}/api/RouteStatus/route/:routeId
+    method: GET
+    mode: none
+    params:path: {
+      routeId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: application/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "name": ""
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 200 Response
+  description: OK
+  
+  request: {
+    url: {{baseUrl}}/api/RouteStatus/route/:routeId
+    method: GET
+    mode: none
+    params:path: {
+      routeId: 
+    }
+  }
+  
+  response: {
+    headers: {
+      Content-Type: text/json
+    }
+  
+    status: {
+      code: 200
+      text: OK
+    }
+  
+    body: {
+      type: json
+      content: '''
+        {
+          "name": ""
+        }
+      '''
+    }
+  }
+}
