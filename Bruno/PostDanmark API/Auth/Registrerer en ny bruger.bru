@@ -7,175 +7,45 @@ meta {
 post {
   url: {{baseUrl}}/api/Auth/register
   body: json
-  auth: inherit
+  auth: none
 }
 
 body:json {
   {
-    "name": "",
-    "email": "",
-    "password": ""
+    "name": "{{e2eName}}",
+    "email": "{{e2eEmail}}",
+    "password": "{{e2ePassword}}"
   }
+}
+
+script:pre-request {
+  const ts = Date.now();
+  const r = Math.floor(Math.random() * 10000);
+  bru.setEnvVar("e2eName", `e2e_${ts}_${r}`);
+  bru.setEnvVar("e2eEmail", `e2e_${ts}_${r}@example.com`);
+  bru.setEnvVar("e2ePassword", "E2EPassword123!");
+}
+
+script:post-response {
+  if (res.status === 200 || res.status === 201) {
+    const d = typeof res.body === "string" ? JSON.parse(res.body) : (res.body || {});
+    const user = d?.user ?? d?.User;
+    if (user?.id != null) bru.setEnvVar("createdUserId", String(user.id));
+  }
+}
+
+tests {
+  test("Status er 200 eller 201", function() {
+    expect(res.getStatus()).to.be.oneOf([200, 201]);
+  });
+  test("Response indeholder message og user", function() {
+    const d = res.getBody();
+    expect(d).to.have.property("message");
+    expect(d).to.have.property("user");
+    expect(d.user).to.have.property("id");
+  });
 }
 
 vars:pre-request {
-  baseUrl: https://postdanmark-api.mercantec.tech/
-}
-
-example {
-  name: 200 Response
-  description: OK – Bruger registreret succesfuldt. Returnerer brugerinfo.
-  
-  request: {
-    url: {{baseUrl}}/api/Auth/register
-    method: POST
-    mode: json
-    body:json: {
-      {
-        "name": "",
-        "email": "",
-        "password": ""
-      }
-    }
-  }
-  
-  response: {
-    status: {
-      code: 200
-      text: OK
-    }
-  
-    body: {
-      type: text
-      content: '''
-  
-      '''
-    }
-  }
-}
-
-example {
-  name: 400 Response
-  description: Bad Request – Manglende eller ugyldige oplysninger, eller email/brugernavn er allerede i brug.
-  
-  request: {
-    url: {{baseUrl}}/api/Auth/register
-    method: POST
-    mode: json
-    body:json: {
-      {
-        "name": "",
-        "email": "",
-        "password": ""
-      }
-    }
-  }
-  
-  response: {
-    headers: {
-      Content-Type: text/plain
-    }
-  
-    status: {
-      code: 400
-      text: Bad Request
-    }
-  
-    body: {
-      type: text
-      content: '''
-        {
-          "type": "",
-          "title": "",
-          "status": 0,
-          "detail": "",
-          "instance": ""
-        }
-      '''
-    }
-  }
-}
-
-example {
-  name: 400 Response
-  description: Bad Request – Manglende eller ugyldige oplysninger, eller email/brugernavn er allerede i brug.
-  
-  request: {
-    url: {{baseUrl}}/api/Auth/register
-    method: POST
-    mode: json
-    body:json: {
-      {
-        "name": "",
-        "email": "",
-        "password": ""
-      }
-    }
-  }
-  
-  response: {
-    headers: {
-      Content-Type: application/json
-    }
-  
-    status: {
-      code: 400
-      text: Bad Request
-    }
-  
-    body: {
-      type: json
-      content: '''
-        {
-          "type": "",
-          "title": "",
-          "status": 0,
-          "detail": "",
-          "instance": ""
-        }
-      '''
-    }
-  }
-}
-
-example {
-  name: 400 Response
-  description: Bad Request – Manglende eller ugyldige oplysninger, eller email/brugernavn er allerede i brug.
-  
-  request: {
-    url: {{baseUrl}}/api/Auth/register
-    method: POST
-    mode: json
-    body:json: {
-      {
-        "name": "",
-        "email": "",
-        "password": ""
-      }
-    }
-  }
-  
-  response: {
-    headers: {
-      Content-Type: text/json
-    }
-  
-    status: {
-      code: 400
-      text: Bad Request
-    }
-  
-    body: {
-      type: json
-      content: '''
-        {
-          "type": "",
-          "title": "",
-          "status": 0,
-          "detail": "",
-          "instance": ""
-        }
-      '''
-    }
-  }
+  baseUrl: https://postdanmark-api.mercantec.tech
 }

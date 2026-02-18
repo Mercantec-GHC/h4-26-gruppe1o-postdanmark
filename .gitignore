@@ -101,3 +101,6 @@ yarn.lock
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 .obsidian/workspace.json
+
+# Bruno secret environments
+Bruno/**/*.secret.bru

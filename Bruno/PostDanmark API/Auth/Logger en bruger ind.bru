@@ -7,293 +7,38 @@ meta {
 post {
   url: {{baseUrl}}/api/Auth/login
   body: json
-  auth: inherit
+  auth: none
 }
 
 body:json {
   {
-    "email": "",
-    "password": ""
+    "email": "{{e2eEmail}}",
+    "password": "{{e2ePassword}}"
   }
 }
 
 vars:pre-request {
-  baseUrl: https://postdanmark-api.mercantec.tech/
+  baseUrl: https://postdanmark-api.mercantec.tech
 }
 
-example {
-  name: 200 Response
-  description: OK – Login succesfuldt. Returnerer JWT token og brugerinfo.
-  
-  request: {
-    url: {{baseUrl}}/api/Auth/login
-    method: POST
-    mode: json
-    body:json: {
-      {
-        "email": "",
-        "password": ""
-      }
-    }
-  }
-  
-  response: {
-    status: {
-      code: 200
-      text: OK
-    }
-  
-    body: {
-      type: text
-      content: '''
-  
-      '''
-    }
+script:post-response {
+  if (res.status === 200) {
+    const d = typeof res.body === "string" ? JSON.parse(res.body) : (res.body || {});
+    const token = d?.token ?? d?.Token;
+    const user = d?.user ?? d?.User;
+    if (token) bru.setEnvVar("authToken", String(token));
+    if (user?.id != null) bru.setEnvVar("createdUserId", String(user.id));
   }
 }
 
-example {
-  name: 400 Response
-  description: Bad Request – Manglende eller ugyldige loginoplysninger.
-  
-  request: {
-    url: {{baseUrl}}/api/Auth/login
-    method: POST
-    mode: json
-    body:json: {
-      {
-        "email": "",
-        "password": ""
-      }
-    }
-  }
-  
-  response: {
-    headers: {
-      Content-Type: text/plain
-    }
-  
-    status: {
-      code: 400
-      text: Bad Request
-    }
-  
-    body: {
-      type: text
-      content: '''
-        {
-          "type": "",
-          "title": "",
-          "status": 0,
-          "detail": "",
-          "instance": ""
-        }
-      '''
-    }
-  }
-}
-
-example {
-  name: 400 Response
-  description: Bad Request – Manglende eller ugyldige loginoplysninger.
-  
-  request: {
-    url: {{baseUrl}}/api/Auth/login
-    method: POST
-    mode: json
-    body:json: {
-      {
-        "email": "",
-        "password": ""
-      }
-    }
-  }
-  
-  response: {
-    headers: {
-      Content-Type: application/json
-    }
-  
-    status: {
-      code: 400
-      text: Bad Request
-    }
-  
-    body: {
-      type: json
-      content: '''
-        {
-          "type": "",
-          "title": "",
-          "status": 0,
-          "detail": "",
-          "instance": ""
-        }
-      '''
-    }
-  }
-}
-
-example {
-  name: 400 Response
-  description: Bad Request – Manglende eller ugyldige loginoplysninger.
-  
-  request: {
-    url: {{baseUrl}}/api/Auth/login
-    method: POST
-    mode: json
-    body:json: {
-      {
-        "email": "",
-        "password": ""
-      }
-    }
-  }
-  
-  response: {
-    headers: {
-      Content-Type: text/json
-    }
-  
-    status: {
-      code: 400
-      text: Bad Request
-    }
-  
-    body: {
-      type: json
-      content: '''
-        {
-          "type": "",
-          "title": "",
-          "status": 0,
-          "detail": "",
-          "instance": ""
-        }
-      '''
-    }
-  }
-}
-
-example {
-  name: 401 Response
-  description: Unauthorized – Ugyldig email eller adgangskode.
-  
-  request: {
-    url: {{baseUrl}}/api/Auth/login
-    method: POST
-    mode: json
-    body:json: {
-      {
-        "email": "",
-        "password": ""
-      }
-    }
-  }
-  
-  response: {
-    headers: {
-      Content-Type: text/plain
-    }
-  
-    status: {
-      code: 401
-      text: Unauthorized
-    }
-  
-    body: {
-      type: text
-      content: '''
-        {
-          "type": "",
-          "title": "",
-          "status": 0,
-          "detail": "",
-          "instance": ""
-        }
-      '''
-    }
-  }
-}
-
-example {
-  name: 401 Response
-  description: Unauthorized – Ugyldig email eller adgangskode.
-  
-  request: {
-    url: {{baseUrl}}/api/Auth/login
-    method: POST
-    mode: json
-    body:json: {
-      {
-        "email": "",
-        "password": ""
-      }
-    }
-  }
-  
-  response: {
-    headers: {
-      Content-Type: application/json
-    }
-  
-    status: {
-      code: 401
-      text: Unauthorized
-    }
-  
-    body: {
-      type: json
-      content: '''
-        {
-          "type": "",
-          "title": "",
-          "status": 0,
-          "detail": "",
-          "instance": ""
-        }
-      '''
-    }
-  }
-}
-
-example {
-  name: 401 Response
-  description: Unauthorized – Ugyldig email eller adgangskode.
-  
-  request: {
-    url: {{baseUrl}}/api/Auth/login
-    method: POST
-    mode: json
-    body:json: {
-      {
-        "email": "",
-        "password": ""
-      }
-    }
-  }
-  
-  response: {
-    headers: {
-      Content-Type: text/json
-    }
-  
-    status: {
-      code: 401
-      text: Unauthorized
-    }
-  
-    body: {
-      type: json
-      content: '''
-        {
-          "type": "",
-          "title": "",
-          "status": 0,
-          "detail": "",
-          "instance": ""
-        }
-      '''
-    }
-  }
+tests {
+  test("Status er 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("Response indeholder token og user", function() {
+    const d = res.getBody();
+    expect(d).to.have.property("token");
+    expect(d).to.have.property("user");
+    expect(d.user).to.have.property("id");
+  });
 }
