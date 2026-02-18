@@ -105,4 +105,6 @@ yarn.lock
 # Bruno secret environments
 Bruno/**/*.secret.bru
 **/environments/local.bru
-Bruno/PostDanmark API/environments/local.bruno
+**/environments/local.secret.bru
+Bruno/PostDanmark API/environments/local.bru
+Bruno/PostDanmark API/environments/local.secret.bru
