@@ -1,6 +1,6 @@
 using API.Services;
 
-namespace UnitTest;
+namespace UnitTest.ServicesTests;
 
 public class PasswordHashTest
 {
