@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -84,6 +85,61 @@ public class UserController : ControllerBase
         }).ToList();
 
         return Ok(userDtos);
+    }
+
+    /// <summary>
+    /// Sletter en bruger baseret på ID.
+    /// Ruter oprettet af brugeren slettes også. Ruter tildelt brugeren fjernes fra brugeren.
+    /// Kun Admin-brugere har adgang.
+    /// </summary>
+    /// <param name="id">Brugerens ID</param>
+    /// <response code="200">OK – Brugeren er slettet.</response>
+    /// <response code="401">Unauthorized – Hvis brugeren ikke er logget ind.</response>
+    /// <response code="403">Forbidden – Hvis brugeren ikke har Admin-rolle.</response>
+    /// <response code="404">Not Found – Hvis brugeren ikke findes.</response>
+    [HttpDelete("{id}")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteUser(int id)
+    {
+        // Tjek om brugeren forsøger at slette sin egen konto eller er admin
+        var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var isAdmin = User.IsInRole("Admin");
+
+        if (currentUserId != id && !isAdmin)
+        {
+            return Forbid();
+        }
+
+        var user = await _context.Users.FindAsync(id);
+
+        if (user == null)
+        {
+            return NotFound(new { message = "Bruger ikke fundet." });
+        }
+
+        // Slet ruter oprettet af brugeren (stops slettes via cascade)
+        var createdRoutes = await _context.DeliveryRoutes
+            .Where(r => r.UserId == id)
+            .ToListAsync();
+        _context.DeliveryRoutes.RemoveRange(createdRoutes);
+
+        // Fjern brugeren fra tildelte ruter
+        var assignedRoutes = await _context.DeliveryRoutes
+            .Where(r => r.AssignedUserId == id)
+            .ToListAsync();
+        foreach (var route in assignedRoutes)
+        {
+            route.AssignedUserId = null;
+        }
+
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Bruger slettet." });
     }
 
     /// <summary>
