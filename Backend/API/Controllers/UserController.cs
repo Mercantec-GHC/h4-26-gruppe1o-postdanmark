@@ -90,7 +90,7 @@ public class UserController : ControllerBase
     /// <summary>
     /// Sletter en bruger baseret på ID.
     /// Ruter oprettet af brugeren slettes også. Ruter tildelt brugeren fjernes fra brugeren.
-    /// Kun Admin-brugere har adgang.
+    /// Kun Admin-brugere eller brugeren selv har adgang til at slette en bruger.
     /// </summary>
     /// <param name="id">Brugerens ID</param>
     /// <response code="200">OK – Brugeren er slettet.</response>

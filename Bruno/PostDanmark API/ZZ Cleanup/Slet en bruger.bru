@@ -1,0 +1,21 @@
+meta {
+  name: Slet en bruger
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{baseUrl}}/api/User/{{createdUserId}}
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  baseUrl: https://postdanmark-api.mercantec.tech
+}
+
+tests {
+  test("Status er 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
