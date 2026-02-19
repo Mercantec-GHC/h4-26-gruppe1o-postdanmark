@@ -10,6 +10,10 @@ get {
   auth: inherit
 }
 
+vars:pre-request {
+  baseUrl: https://postdanmark-api.mercantec.tech
+}
+
 tests {
   test("Status er 200", function() {
     expect(res.getStatus()).to.equal(200);
@@ -18,8 +22,4 @@ tests {
     const d = res.getBody();
     expect(d).to.be.an("array");
   });
-}
-
-vars:pre-request {
-  baseUrl: https://postdanmark-api.mercantec.tech
 }
