@@ -150,9 +150,9 @@ export default function CreateRouteScreen() {
         return;
       }
 
-      Alert.alert('Rute oprettet', 'Den nye rute er oprettet.', [
-        { text: 'OK', onPress: () => router.replace('/(tabs)/deliveryroutes') },
-      ]);
+      // Navigate first so we don't rely on alert callback (can be unreliable on web)
+      router.replace('/(tabs)/deliveryroutes');
+      Alert.alert('Rute oprettet', 'Den nye rute er oprettet.');
     } catch (e: unknown) {
       console.error('Create route error', e);
       Alert.alert('Fejl', (e as Error)?.message ?? 'Kunne ikke oprette rute.');

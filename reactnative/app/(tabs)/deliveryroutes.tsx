@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { API_BASE } from "@/services/config";
@@ -114,6 +115,13 @@ export default function DeliveryRoutesScreen() {
     if (adminKnown) fetchRoutes();
   }, [adminKnown, fetchRoutes]);
 
+  // Refetch when screen gains focus (e.g. after creating a route on createroutes)
+  useFocusEffect(
+    useCallback(() => {
+      if (adminKnown) fetchRoutes();
+    }, [adminKnown, fetchRoutes])
+  );
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchRoutes();
@@ -185,6 +193,18 @@ export default function DeliveryRoutesScreen() {
       case 2: return { label: "Start rute", statusId: 3, color: "#fff", bgColor: "#ff9800" };
       case 3: return { label: "Fuldfør rute", statusId: 4, color: "#fff", bgColor: "#4caf50" };
       default: return null;
+    }
+  };
+
+  const handleStartRoute = (item: DeliveryRoute) => {
+    const nextAction = getNextAction(item);
+    if (!nextAction) return;
+    updateRouteStatus(item.id, nextAction.statusId);
+    if (item.stops && item.stops.length > 0) {
+      router.push({
+        pathname: "/(tabs)/map",
+        params: { stops: JSON.stringify(item.stops) },
+      } as unknown as Parameters<typeof router.push>[0]);
     }
   };
 
@@ -306,7 +326,7 @@ export default function DeliveryRoutesScreen() {
                 {nextAction && (
                     <TouchableOpacity
                         style={[styles.actionBtn, { backgroundColor: nextAction.bgColor }]}
-                        onPress={() => updateRouteStatus(item.id, nextAction.statusId)}
+                        onPress={() => nextAction.label === "Start rute" ? handleStartRoute(item) : updateRouteStatus(item.id, nextAction.statusId)}
                     >
                       <Text style={[styles.actionBtnText, { color: nextAction.color }]}>{nextAction.label}</Text>
                     </TouchableOpacity>
