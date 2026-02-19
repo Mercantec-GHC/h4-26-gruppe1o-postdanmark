@@ -70,6 +70,7 @@ public class UserController : ControllerBase
                 StatusName = route.Status?.Name,
                 Stops = route.Stops.Select(stop => new StopDto
                 {
+                    Id = stop.Id,
                     Address = stop.Address,
                     Latitude = stop.Latitude,
                     Longitude = stop.Longitude,
@@ -136,6 +137,7 @@ public class UserController : ControllerBase
                 StatusName = route.Status?.Name,
                 Stops = route.Stops.Select(stop => new StopDto
                 {
+                    Id = stop.Id,
                     Address = stop.Address,
                     Latitude = stop.Latitude,
                     Longitude = stop.Longitude,
