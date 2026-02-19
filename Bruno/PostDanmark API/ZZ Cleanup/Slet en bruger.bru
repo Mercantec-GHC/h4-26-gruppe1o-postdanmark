@@ -1,11 +1,11 @@
 meta {
-  name: Hent alle leveringsruter (kun admin)
+  name: Slet en bruger
   type: http
   seq: 2
 }
 
-get {
-  url: {{baseUrl}}/api/DeliveryRoute
+delete {
+  url: {{baseUrl}}/api/User/{{createdUserId}}
   body: none
   auth: inherit
 }
@@ -17,9 +17,5 @@ vars:pre-request {
 tests {
   test("Status er 200", function() {
     expect(res.getStatus()).to.equal(200);
-  });
-  test("Response er en liste", function() {
-    const d = res.getBody();
-    expect(d).to.be.an("array");
   });
 }

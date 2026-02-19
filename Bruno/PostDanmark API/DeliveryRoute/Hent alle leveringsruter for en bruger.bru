@@ -11,177 +11,19 @@ get {
 }
 
 params:path {
-  userId: 
+  userId: {{createdUserId}}
+}
+
+tests {
+  test("Status er 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("Response er en liste", function() {
+    const d = res.getBody();
+    expect(d).to.be.an("array");
+  });
 }
 
 vars:pre-request {
-  baseUrl: https://postdanmark-api.mercantec.tech/
-}
-
-example {
-  name: 200 Response
-  description: OK
-  
-  request: {
-    url: {{baseUrl}}/api/DeliveryRoute/user/:userId
-    method: GET
-    mode: none
-    params:path: {
-      userId: 
-    }
-  }
-  
-  response: {
-    headers: {
-      Content-Type: text/plain
-    }
-  
-    status: {
-      code: 200
-      text: OK
-    }
-  
-    body: {
-      type: text
-      content: '''
-        [
-          {
-            "id": 0,
-            "name": "",
-            "scheduledDate": "",
-            "totalDistanceKm": 0,
-            "estimatedDurationMinutes": 0,
-            "userId": 0,
-            "assignedUserId": 0,
-            "assignedUserName": "",
-            "routeStatusId": 0,
-            "statusName": "",
-            "stops": [
-              {
-                "address": "",
-                "latitude": 0,
-                "longitude": 0,
-                "sequence": 0,
-                "status": {
-                  "name": ""
-                }
-              }
-            ]
-          }
-        ]
-      '''
-    }
-  }
-}
-
-example {
-  name: 200 Response
-  description: OK
-  
-  request: {
-    url: {{baseUrl}}/api/DeliveryRoute/user/:userId
-    method: GET
-    mode: none
-    params:path: {
-      userId: 
-    }
-  }
-  
-  response: {
-    headers: {
-      Content-Type: application/json
-    }
-  
-    status: {
-      code: 200
-      text: OK
-    }
-  
-    body: {
-      type: json
-      content: '''
-        [
-          {
-            "id": 0,
-            "name": "",
-            "scheduledDate": "",
-            "totalDistanceKm": 0,
-            "estimatedDurationMinutes": 0,
-            "userId": 0,
-            "assignedUserId": 0,
-            "assignedUserName": "",
-            "routeStatusId": 0,
-            "statusName": "",
-            "stops": [
-              {
-                "address": "",
-                "latitude": 0,
-                "longitude": 0,
-                "sequence": 0,
-                "status": {
-                  "name": ""
-                }
-              }
-            ]
-          }
-        ]
-      '''
-    }
-  }
-}
-
-example {
-  name: 200 Response
-  description: OK
-  
-  request: {
-    url: {{baseUrl}}/api/DeliveryRoute/user/:userId
-    method: GET
-    mode: none
-    params:path: {
-      userId: 
-    }
-  }
-  
-  response: {
-    headers: {
-      Content-Type: text/json
-    }
-  
-    status: {
-      code: 200
-      text: OK
-    }
-  
-    body: {
-      type: json
-      content: '''
-        [
-          {
-            "id": 0,
-            "name": "",
-            "scheduledDate": "",
-            "totalDistanceKm": 0,
-            "estimatedDurationMinutes": 0,
-            "userId": 0,
-            "assignedUserId": 0,
-            "assignedUserName": "",
-            "routeStatusId": 0,
-            "statusName": "",
-            "stops": [
-              {
-                "address": "",
-                "latitude": 0,
-                "longitude": 0,
-                "sequence": 0,
-                "status": {
-                  "name": ""
-                }
-              }
-            ]
-          }
-        ]
-      '''
-    }
-  }
+  baseUrl: https://postdanmark-api.mercantec.tech
 }

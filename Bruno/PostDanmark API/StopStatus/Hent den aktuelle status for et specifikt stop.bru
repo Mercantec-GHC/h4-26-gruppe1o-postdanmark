@@ -11,11 +11,27 @@ get {
 }
 
 params:path {
-  stopId: 
+  stopId: {{createdStopId}}
 }
 
 vars:pre-request {
-  baseUrl: https://postdanmark-api.mercantec.tech/
+  baseUrl: https://postdanmark-api.mercantec.tech
+}
+
+tests {
+  test("Status er 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("Response indeholder address og status", function() {
+    const d = res.getBody();
+    expect(d).to.have.property("address");
+    expect(d).to.have.property("status");
+  });
+  test("Response indeholder latitude og longitude", function() {
+    const d = res.getBody();
+    expect(d).to.have.property("latitude");
+    expect(d).to.have.property("longitude");
+  });
 }
 
 example {

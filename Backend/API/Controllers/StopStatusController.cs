@@ -49,6 +49,7 @@ public class StopStatusController : ControllerBase
 
         var dto = new StopDto
         {
+            Id = stop.Id,
             Address = stop.Address,
             Latitude = stop.Latitude,
             Longitude = stop.Longitude,
@@ -86,6 +87,7 @@ public class StopStatusController : ControllerBase
 
         var resultDto = new StopDto
         {
+            Id = stop.Id,
             Address = stop.Address,
             Latitude = stop.Latitude,
             Longitude = stop.Longitude,

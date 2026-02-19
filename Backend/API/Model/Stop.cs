@@ -19,6 +19,7 @@ public class Stop : Common
 
 public class StopDto
 {
+    public int Id { get; set; }
     public string Address { get; set; } = null!;
     public double Latitude { get; set; }
     public double Longitude { get; set; }

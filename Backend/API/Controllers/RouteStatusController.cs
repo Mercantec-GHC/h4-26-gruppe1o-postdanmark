@@ -97,6 +97,7 @@ public class RouteStatusController : ControllerBase
             StatusName = newStatus.Name,
             Stops = route.Stops.OrderBy(s => s.SequenceOrder).Select(s => new StopDto
             {
+                Id = s.Id,
                 Address = s.Address,
                 Latitude = s.Latitude,
                 Longitude = s.Longitude,

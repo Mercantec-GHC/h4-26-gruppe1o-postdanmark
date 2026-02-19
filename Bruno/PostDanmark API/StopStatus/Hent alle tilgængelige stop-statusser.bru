@@ -11,7 +11,21 @@ get {
 }
 
 vars:pre-request {
-  baseUrl: https://postdanmark-api.mercantec.tech/
+  baseUrl: https://postdanmark-api.mercantec.tech
+}
+
+tests {
+  test("Status er 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("Response er en liste", function() {
+    const d = res.getBody();
+    expect(d).to.be.an("array");
+  });
+  test("Første element indeholder name", function() {
+    const d = res.getBody();
+    expect(d[0]).to.have.property("name");
+  });
 }
 
 example {
