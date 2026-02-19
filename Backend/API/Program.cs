@@ -9,7 +9,7 @@ using Microsoft.OpenApi;
 using Scalar.AspNetCore;
 using System.Text;
 
-// trigger CI 
+
 
 var builder = WebApplication.CreateBuilder(args);
 
