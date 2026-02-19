@@ -14,15 +14,35 @@ body:json {
   {
     "coordinates": [
       {
-        "latitude": 0,
-        "longitude": 0
+        "latitude": 56.4532,
+        "longitude": 9.4023
+      },
+      {
+        "latitude": 56.4602,
+        "longitude": 9.4150
       }
     ]
   }
 }
 
 vars:pre-request {
-  baseUrl: https://postdanmark-api.mercantec.tech/
+  baseUrl: https://postdanmark-api.mercantec.tech
+}
+
+tests {
+  test("Status er 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("Response indeholder coordinates", function() {
+    const d = res.getBody();
+    expect(d).to.have.property("coordinates");
+    expect(d.coordinates).to.be.an("array");
+  });
+  test("Coordinates indeholder latitude og longitude", function() {
+    const d = res.getBody();
+    expect(d.coordinates[0]).to.have.property("latitude");
+    expect(d.coordinates[0]).to.have.property("longitude");
+  });
 }
 
 example {
