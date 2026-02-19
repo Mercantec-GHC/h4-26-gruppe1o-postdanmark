@@ -11,11 +11,21 @@ get {
 }
 
 params:path {
-  routeId: 
+  routeId: {{createdRouteId}}
 }
 
 vars:pre-request {
-  baseUrl: https://postdanmark-api.mercantec.tech/
+  baseUrl: https://postdanmark-api.mercantec.tech
+}
+
+tests {
+  test("Status er 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("Response indeholder name", function() {
+    const d = res.getBody();
+    expect(d).to.have.property("name");
+  });
 }
 
 example {

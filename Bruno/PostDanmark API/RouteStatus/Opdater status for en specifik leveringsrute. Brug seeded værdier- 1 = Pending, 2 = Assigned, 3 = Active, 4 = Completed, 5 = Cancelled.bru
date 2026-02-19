@@ -11,17 +11,33 @@ put {
 }
 
 params:path {
-  routeId: 
+  routeId: {{createdRouteId}}
 }
 
 body:json {
   {
-    "routeStatusId": 0
+    "routeStatusId": 2
   }
 }
 
 vars:pre-request {
-  baseUrl: https://postdanmark-api.mercantec.tech/
+  baseUrl: https://postdanmark-api.mercantec.tech
+}
+
+tests {
+  test("Status er 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("Response indeholder id og routeStatusId", function() {
+    const d = res.getBody();
+    expect(d).to.have.property("id");
+    expect(d).to.have.property("routeStatusId");
+  });
+  test("Response indeholder stops", function() {
+    const d = res.getBody();
+    expect(d).to.have.property("stops");
+    expect(d.stops).to.be.an("array");
+  });
 }
 
 example {
