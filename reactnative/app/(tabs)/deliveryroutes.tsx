@@ -27,6 +27,7 @@ interface StopStatus {
   name: string;
 }
 interface Stop {
+  id?: number;
   address: string;
   latitude: number;
   longitude: number;
@@ -286,12 +287,15 @@ export default function DeliveryRoutesScreen() {
                 <View style={styles.stopsList}>
                   <ThemedText type="defaultSemiBold" style={styles.stopsHeader}>Stop</ThemedText>
                   {visibleStops.map((stop, index) => (
-                      <View key={index} style={styles.stopItem}>
+                      <View key={stop.id ?? index} style={styles.stopItem}>
                         <Text style={styles.stopSequence}>{stop.sequence}.</Text>
                         <View style={styles.stopInfo}>
                           <ThemedText style={styles.stopAddress}>{stop.address}</ThemedText>
                           {stop.status && <Text style={styles.stopStatus}>{stop.status.name}</Text>}
                         </View>
+                        {stop.status?.name === "Delivered" && (
+                          <Text style={styles.deliveredCheck}>✓</Text>
+                        )}
                       </View>
                   ))}
                   {hasMore && (
@@ -466,6 +470,7 @@ const styles = StyleSheet.create({
   stopInfo: { flex: 1 },
   stopAddress: { fontSize: 13 },
   stopStatus: { fontSize: 11, color: "#888", marginTop: 2 },
+  deliveredCheck: { fontSize: 18, color: "#4caf50", fontWeight: "bold", marginLeft: 8 },
   expandButton: { marginTop: 8, paddingVertical: 6, alignItems: "center" },
   expandButtonText: { fontSize: 13, fontWeight: "600", color: "#1e88e5" },
   errorText: { fontSize: 16, color: "#d32f2f", textAlign: "center" },

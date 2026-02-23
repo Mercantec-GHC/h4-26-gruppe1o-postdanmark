@@ -8,21 +8,25 @@ import { useState, useEffect, useRef, useCallback } from 'react'; // The Brain: 
 import * as Location from 'expo-location'; // The Sensor: Allows us to talk to the phone's GPS chip.
 import { playSoundEffect } from '@/services/soundEffects';
 import { getRoadRouteNative } from '@/services/roadRouting';
+import { API_BASE } from '@/services/config';
+import { getToken } from '@/services/tokenStorage';
 
 // Stop format when passed from the delivery routes screen (API shape)
 export interface RouteStopInput {
+    id?: number; // Backend stop Id – brugt til at opdatere status ved "Lever Pakke"
     address: string;
     latitude: number;
     longitude: number;
     sequence: number;
 }
 
-// Internal stop format used by the map (id, title, lat, lng)
+// Internal stop format used by the map (id for key/display, backendStopId for API)
 interface MapStop {
     id: number;
     title: string;
     lat: number;
     lng: number;
+    backendStopId?: number; // Database stop Id – bruges til API-kald ved levering
 }
 
 function routeStopsToMapStops(routeStops: RouteStopInput[]): MapStop[] {
@@ -33,6 +37,7 @@ function routeStopsToMapStops(routeStops: RouteStopInput[]): MapStop[] {
             title: stop.address || `Stop ${index + 1}`,
             lat: stop.latitude,
             lng: stop.longitude,
+            backendStopId: stop.id,
         }));
 }
 
@@ -160,10 +165,31 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
 
     // 4. THE ACTIONS (FUNCTIONS) ⚡
     // This happens when the user clicks the "Deliver Package" button.
-    const finishDelivery = () => {
+    const finishDelivery = async () => {
         if (!selectedStop) return;
+        const stopToComplete = selectedStop;
+
+        // Opdater stop-status i backend, så deliveryroutes kan vise checkmark (Delivered = 2)
+        if (stopToComplete.backendStopId != null) {
+            try {
+                const token = await getToken();
+                if (token) {
+                    await fetch(`${API_BASE}/api/StopStatus/stop/${stopToComplete.backendStopId}`, {
+                        method: 'PUT',
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ stopStatusId: 2 }), // 2 = Delivered
+                    });
+                }
+            } catch (e) {
+                console.warn('Kunne ikke opdatere stop-status:', e);
+            }
+        }
+
         // Logic: Create a NEW list that keeps everyone EXCEPT the one we just finished.
-        const newStops = stops.filter(stop => stop.id !== selectedStop.id);
+        const newStops = stops.filter(stop => stop.id !== stopToComplete.id);
 
         // Update Memory: Replace the old list with the shorter list.
         // (React will automatically re-draw the map and remove the pin).

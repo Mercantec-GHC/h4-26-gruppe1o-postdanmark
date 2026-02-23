@@ -6,8 +6,18 @@ import { StyleSheet, View, Text, TouchableOpacity } from 'react-native'; // Stan
 import * as Location from 'expo-location'; // The GPS Tool
 import type { RouteStopInput } from './DeliveryMap.native';
 import { getRoadRouteLeaflet } from '@/services/roadRouting';
+import { API_BASE } from '@/services/config';
+import { getToken } from '@/services/tokenStorage';
 
-function routeStopsToMapStops(routeStops: RouteStopInput[]) {
+interface MapStop {
+    id: number;
+    title: string;
+    lat: number;
+    lng: number;
+    backendStopId?: number;
+}
+
+function routeStopsToMapStops(routeStops: RouteStopInput[]): MapStop[] {
     return routeStops
         .sort((a, b) => a.sequence - b.sequence)
         .map((stop, index) => ({
@@ -15,10 +25,11 @@ function routeStopsToMapStops(routeStops: RouteStopInput[]) {
             title: stop.address || `Stop ${index + 1}`,
             lat: stop.latitude,
             lng: stop.longitude,
+            backendStopId: stop.id,
         }));
 }
 
-const DEFAULT_STOPS = [
+const DEFAULT_STOPS: MapStop[] = [
     { id: 1, title: "Stop 1", lat: 57.00569, lng: 9.88305 },
     { id: 2, title: "Stop 2", lat: 57.03934, lng: 9.90931 },
     { id: 3, title: "Stop 3", lat: 57.03472, lng: 9.85347 },
@@ -159,9 +170,27 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
     }, []);
 
     // 4. THE ACTIONS (FUNCTIONS) ⚡
-    const handleDelivery = (id: number) => {
+    const handleDelivery = async (stop: MapStop) => {
+        // Opdater stop-status i backend, så deliveryroutes kan vise checkmark (Delivered = 2)
+        if (stop.backendStopId != null) {
+            try {
+                const token = await getToken();
+                if (token) {
+                    await fetch(`${API_BASE}/api/StopStatus/stop/${stop.backendStopId}`, {
+                        method: 'PUT',
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ stopStatusId: 2 }), // 2 = Delivered
+                    });
+                }
+            } catch (e) {
+                console.warn('Kunne ikke opdatere stop-status:', e);
+            }
+        }
         // Create a new list without the delivered package
-        const newStops = stops.filter(s => s.id !== id);
+        const newStops = stops.filter(s => s.id !== stop.id);
         setStops(newStops);
     };
 
@@ -269,7 +298,7 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
                                 <br />
                                 <button
                                     className="deliver-btn"
-                                    onClick={() => handleDelivery(stop.id)}
+                                    onClick={() => handleDelivery(stop)}
                                 >
                                     Lever Pakke 📦
                                 </button>
