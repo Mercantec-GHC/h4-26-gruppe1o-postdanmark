@@ -14,6 +14,15 @@ params:path {
   id: {{createdRouteId}}
 }
 
+script:post-response {
+  if (res.status === 200) {
+    const body = res.getBody();
+    if (body && body.stops && body.stops.length > 0 && body.stops[0].id != null) {
+      bru.setEnvVar("createdStopId", String(body.stops[0].id));
+    }
+  }
+}
+
 tests {
   test("Status er 200", function() {
     expect(res.getStatus()).to.equal(200);

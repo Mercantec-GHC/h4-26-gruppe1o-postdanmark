@@ -36,18 +36,7 @@ script:post-response {
     const match = loc.match(/\/(\d+)$/);
     if (match) bru.setEnvVar("createdRouteId", match[1]);
 
-    // Hent ruten via GET for at sætte createdStopId
-    if (bru.getEnvVar("createdRouteId")) {
-      const getRes = await fetch(`${bru.getEnvVar("baseUrl") || bru.getVar("baseUrl")}/api/DeliveryRoute/${bru.getEnvVar("createdRouteId")}`, {
-        headers: { "Authorization": req.headers["authorization"] || req.headers["Authorization"] }
-      });
-      if (getRes.ok) {
-        const route = await getRes.json();
-        if (route?.stops?.length > 0 && route.stops[0].id != null) {
-          bru.setEnvVar("createdStopId", String(route.stops[0].id));
-        }
-      }
-    }
+    // createdStopId sættes i "Hent en leveringsrute via ID" (seq 3)
   }
 }
 
