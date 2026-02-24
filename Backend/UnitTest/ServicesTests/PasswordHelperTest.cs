@@ -13,7 +13,7 @@ public class PasswordHashTest
         // Act
         var hash = PasswordHelper.CreatePasswordHashString(password);
 
-        // Assert - BCrypt hashes starter altid med $2, og hash er ikke det samme som password
+        // Assert 
         Assert.That(hash, Does.StartWith("$2"));
         Assert.That(hash, Is.Not.EqualTo(password));
     }

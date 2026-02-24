@@ -13,11 +13,12 @@ namespace API.Controllers;
 
 public class DeliveryRouteController : ControllerBase
 {
+    //Dependency injection for databasekontekst, geolocation service og routing service
     private readonly AppDBContext _context;
     private readonly IGeolocationService _geolocationService;
     private readonly IRoutingService _routingService;
 
-    public DeliveryRouteController(
+    public DeliveryRouteController( // Initialiserer controlleren med nødvendige services
         AppDBContext context,
         IGeolocationService geolocationService,
         IRoutingService routingService)
@@ -32,7 +33,9 @@ public class DeliveryRouteController : ControllerBase
     /// </summary>
     [HttpPost]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<DeliveryRouteDto>> CreateDeliveryRoute([FromBody] CreateDeliveryRouteDto dto)
+    
+    // Opretter en ny leveringsrute baseret på inputdata. Geokoder adresser, optimerer ruten og gemmer i databasen.
+    public async Task<ActionResult<DeliveryRouteDto>> CreateDeliveryRoute([FromBody] CreateDeliveryRouteDto dto) 
     {
         if (dto.Stops == null || dto.Stops.Count == 0)
         {
@@ -47,16 +50,16 @@ public class DeliveryRouteController : ControllerBase
         }
 
         // Geokod alle adresser for at få koordinater (uden sequence endnu)
-        var stopsWithCoords = new List<(Stop Stop, int OriginalIndex)>();
+        var stopsWithCoords = new List<(Stop Stop, int OriginalIndex)>(); // Tuple for at holde både Stop og dets oprindelige indeks i inputlisten
         
         // Hent standard "Scheduled" status én gang
-        var defaultStatus = await _context.StopStatuses.FirstOrDefaultAsync(s => s.Name == "Scheduled")
+        var defaultStatus = await _context.StopStatuses.FirstOrDefaultAsync(s => s.Name == "Scheduled") 
             ?? await _context.StopStatuses.FirstAsync();
             
-        for (int i = 0; i < dto.Stops.Count; i++)
+        for (int i = 0; i < dto.Stops.Count; i++) // Loop gennem alle stoppesteder i inputdata og geokod adresser
         {
-            var stopDto = dto.Stops[i];
-            var coordinates = await _geolocationService.GetCoordinatesFromAddressAsync(stopDto.Address);
+            var stopDto = dto.Stops[i]; 
+            var coordinates = await _geolocationService.GetCoordinatesFromAddressAsync(stopDto.Address); // Geokod adresse til lat/long
 
             if (coordinates == null)
             {
@@ -82,13 +85,13 @@ public class DeliveryRouteController : ControllerBase
         int estimatedDurationMinutes = 0;
         var stops = new List<Stop>();
 
-        if (stopsWithCoords.Count >= 2)
+        if (stopsWithCoords.Count >= 2) //Optimering kun nødvendig hvis der er 2 eller flere stoppesteder
         {
-            var coordinates = stopsWithCoords
+            var coordinates = stopsWithCoords // Tager koordinaterne i den oprindelige rækkefølge for at sende til routing service
                 .Select(s => (s.Stop.Latitude, s.Stop.Longitude))
                 .ToList();
 
-            var routeResult = await _routingService.OptimizeRouteAsync(coordinates);
+            var routeResult = await _routingService.OptimizeRouteAsync(coordinates); 
 
             if (routeResult != null && routeResult.Success)
             {
@@ -96,11 +99,11 @@ public class DeliveryRouteController : ControllerBase
                 estimatedDurationMinutes = routeResult.EstimatedDurationMinutes;
                 
                 // Anvend optimeret rækkefølge
-                for (int seq = 0; seq < routeResult.OptimizedOrder.Count; seq++)
+                for (int seq = 0; seq < routeResult.OptimizedOrder.Count; seq++) // Loop gennem den optimerede rækkefølge og opret Stop-objekter i den rigtige sequence
                 {
-                    var originalIndex = routeResult.OptimizedOrder[seq];
-                    var stop = stopsWithCoords[originalIndex].Stop;
-                    stop.SequenceOrder = seq + 1;
+                    var originalIndex = routeResult.OptimizedOrder[seq]; // Få det oprindelige indeks for dette stop i inputlisten
+                    var stop = stopsWithCoords[originalIndex].Stop; // Hent Stop-objektet baseret på det oprindelige indeks
+                    stop.SequenceOrder = seq + 1; // Sæt sequence baseret på den optimerede rækkefølge (starter fra 1)
                     stops.Add(stop);
                 }
                 
@@ -108,9 +111,9 @@ public class DeliveryRouteController : ControllerBase
             else
             {
                 // Fallback: brug original rækkefølge
-                for (int i = 0; i < stopsWithCoords.Count; i++)
+                for (int i = 0; i < stopsWithCoords.Count; i++) 
                 {
-                    stopsWithCoords[i].Stop.SequenceOrder = i + 1;
+                    stopsWithCoords[i].Stop.SequenceOrder = i + 1; 
                     stops.Add(stopsWithCoords[i].Stop);
                 }
             }
@@ -148,8 +151,8 @@ public class DeliveryRouteController : ControllerBase
         _context.DeliveryRoutes.Add(route);
         await _context.SaveChangesAsync();
 
-        // Indlæs relateret data
-        await _context.Entry(route).Reference(r => r.Status).LoadAsync();
+        // Hent relaterede data for at kunne mappe til DTO (status, stops og deres status)
+        await _context.Entry(route).Reference(r => r.Status).LoadAsync(); 
 
         await _context.Entry(route).Collection(r => r.Stops).LoadAsync();
 

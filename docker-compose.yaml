@@ -4,12 +4,12 @@ services:
       context: ./Backend
       dockerfile: API/Dockerfile
     ports:
-      - "4010:5000"
+      - "4010:5000" 
     env_file:
       - .env
     environment:
-      - ASPNETCORE_URLS=http://+:5000
-      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5000 # Lytter på port 5000 i containeren
+      - ASPNETCORE_ENVIRONMENT=Production # Sætter miljø til Production
     networks:
       - app-network
 

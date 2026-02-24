@@ -38,7 +38,7 @@ builder.Services.AddHttpClient<IGeolocationService, GeolocationService>();
 // Register RoutingService
 builder.Services.AddHttpClient<IRoutingService, RoutingService>();
 
-// Configure JWT Authentication
+// Configure JWT Authentication - Konfigurer hvordan tokener valideres og hvilke krav der stilles til dem.
 var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]
     ?? Environment.GetEnvironmentVariable("JWT__SECRET_KEY")
     ?? throw new InvalidOperationException("JWT secret key not found in configuration or environment variables.");
@@ -53,10 +53,10 @@ var jwtAudience = builder.Configuration["Jwt:Audience"]
 
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme; // Angiv at vi bruger JWT Bearer tokens til autentificering
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; // Angiv at vi bruger JWT Bearer tokens til udfordring (når en bruger forsøger at få adgang uden gyldig token)
 })
-.AddJwtBearer(options =>
+.AddJwtBearer(options => 
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {

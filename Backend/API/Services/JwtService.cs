@@ -36,7 +36,7 @@ public class JwtService
     public string GenerateToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler(); 
-        var key = Encoding.ASCII.GetBytes(_secretKey); //Konverter hemmelig nøgle til byte array
+        var key = Encoding.ASCII.GetBytes(_secretKey); //Konverter hemmelig nøgle fra tekststreng til byte array
 
         //Definer claims for tokenet
         var claims = new List<Claim>
@@ -54,7 +54,7 @@ public class JwtService
             claims.Add(new Claim(ClaimTypes.Role, user.Role.Name));
         }
         
-        //Opret tokenbeskrivelsen
+        //Opret tokenbeskrivelsen - En samling af alle oplysninger om tokenet.
 
         var tokenDescriptor = new SecurityTokenDescriptor 
         {
@@ -64,7 +64,7 @@ public class JwtService
             Audience = _audience, 
             SigningCredentials = new SigningCredentials( 
                 new SymmetricSecurityKey(key),
-                SecurityAlgorithms.HmacSha256Signature)
+                SecurityAlgorithms.HmacSha256Signature) // Signeres med den hemmelige nøgle og HMAC SHA256 algoritmen
         };
 
         var token = tokenHandler.CreateToken(tokenDescriptor); //Opret tokenet
