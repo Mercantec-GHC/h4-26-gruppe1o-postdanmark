@@ -136,7 +136,7 @@ public class DeliveryRouteControllerTest
         });
 
         // Assert
-        Assert.That(result.Result, Is.InstanceOf<BadRequestObjectResult>());
+        Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
     }
 
     [Test]
@@ -155,7 +155,7 @@ public class DeliveryRouteControllerTest
         });
 
         // Assert
-        Assert.That(result.Result, Is.InstanceOf<NotFoundObjectResult>());
+        Assert.That(result, Is.InstanceOf<NotFoundObjectResult>());
     }
 
     [Test]
@@ -175,7 +175,7 @@ public class DeliveryRouteControllerTest
             });
 
         // Assert
-        Assert.That(result.Result, Is.InstanceOf<BadRequestObjectResult>());
+        Assert.That(result, Is.InstanceOf<BadRequestObjectResult>());
     }
 
     [Test]
@@ -194,9 +194,10 @@ public class DeliveryRouteControllerTest
         });
 
         // Assert
-        Assert.That(result.Result, Is.InstanceOf<CreatedAtActionResult>());
-        var dto = (DeliveryRouteDto)((CreatedAtActionResult)result.Result!).Value!;
-        Assert.That(dto.Name, Is.EqualTo("Ny Rute"));
+        Assert.That(result, Is.InstanceOf<CreatedAtActionResult>());
+        var created = (CreatedAtActionResult)result;
+        Assert.That(created.Value, Is.Null);
+        Assert.That(created.RouteValues!["id"], Is.Not.Null);
     }
 
     [Test]

@@ -35,7 +35,7 @@ public class DeliveryRouteController : ControllerBase
     [Authorize(Roles = "Admin")]
     
     // Opretter en ny leveringsrute baseret på inputdata. Geokoder adresser, optimerer ruten og gemmer i databasen.
-    public async Task<ActionResult<DeliveryRouteDto>> CreateDeliveryRoute([FromBody] CreateDeliveryRouteDto dto) 
+    public async Task<ActionResult> CreateDeliveryRoute([FromBody] CreateDeliveryRouteDto dto)
     {
         if (dto.Stops == null || dto.Stops.Count == 0)
         {
@@ -151,43 +151,7 @@ public class DeliveryRouteController : ControllerBase
         _context.DeliveryRoutes.Add(route);
         await _context.SaveChangesAsync();
 
-        // Hent relaterede data for at kunne mappe til DTO (status, stops og deres status)
-        await _context.Entry(route).Reference(r => r.Status).LoadAsync(); 
-
-        await _context.Entry(route).Collection(r => r.Stops).LoadAsync();
-
-        foreach (var stop in route.Stops)
-        {
-            await _context.Entry(stop).Reference(s => s.Status).LoadAsync();
-        }
-
-        // Map til DTO
-        await _context.Entry(route).Reference(r => r.AssignedUser).LoadAsync();
-        var resultDto = new DeliveryRouteDto
-        {
-            Id = route.Id,
-            Name = route.Name,
-            ScheduledDate = route.ScheduledDate,
-            TotalDistanceKm = route.TotalDistanceKm,
-            EstimatedDurationMinutes = route.EstimatedDurationMinutes,
-            UserId = route.UserId,
-            AssignedUserId = route.AssignedUserId,
-            AssignedUserName = route.AssignedUser?.Name,
-
-            RouteStatusId = route.RouteStatusId,
-            StatusName = route.Status?.Name,
-            Stops = route.Stops.Select(s => new StopDto
-            {
-                Id = s.Id,
-                Address = s.Address,
-                Latitude = s.Latitude,
-                Longitude = s.Longitude,
-                Sequence = s.SequenceOrder,
-                Status = s.Status != null ? new StopStatusDto { Name = s.Status.Name } : null
-            }).ToList()
-        };
-
-        return CreatedAtAction(nameof(GetDeliveryRoute), new { id = route.Id }, resultDto);
+        return CreatedAtAction(nameof(GetDeliveryRoute), new { id = route.Id }, null);
     }
 
     /// <summary>
