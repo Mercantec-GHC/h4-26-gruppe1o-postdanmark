@@ -99,7 +99,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Login([FromBody] LoginUserDto loginDto)
+    public async Task<IActionResult> Login([FromBody] LoginUserDto loginDto) //IActionResulst er generisk type 
     {
         // Validate model
         if (!ModelState.IsValid)
