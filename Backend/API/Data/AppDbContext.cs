@@ -5,6 +5,7 @@ namespace API.Data;
 
 public class AppDBContext : DbContext
 {
+    
     public AppDBContext(DbContextOptions<AppDBContext> options)
         : base(options)
     {
@@ -21,8 +22,9 @@ public class AppDBContext : DbContext
     public DbSet<DeliveryRoute> DeliveryRoutes { get; set; }
     public DbSet<Stop> Stops { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder modelBuilder) // Bruges til at konfigurere relationer og seed data
     {
+        // Kald EF Core's egen opsætning før vi tilføjer vores egne relationer og seed data
         base.OnModelCreating(modelBuilder);
 
         // ===== Relationer (One-to-Many) =====

@@ -38,6 +38,8 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] RegisterUserDto registerDto)
     {
+        
+        // BURDE LAVE EN MODELSTATE VALIDATION HER
         // Tjekker om email allerede eksisterer
         var normalizedRegisterEmail = registerDto.Email.ToLowerInvariant();
         if (await _context.Users.AnyAsync(u => u.Email.ToLower() == normalizedRegisterEmail))
