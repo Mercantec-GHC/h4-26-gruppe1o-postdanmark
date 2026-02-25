@@ -32,7 +32,7 @@ public class DeliveryRouteController : ControllerBase
     /// Opret en ny leveringsrute med stoppesteder. Adresser bliver automatisk geokodet til koordinater.
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = "Admin")] //CI TRIGGER
+    [Authorize(Roles = "Admin")] 
     
     // Opretter en ny leveringsrute baseret på inputdata. Geokoder adresser, optimerer ruten og gemmer i databasen.
     public async Task<ActionResult> CreateDeliveryRoute([FromBody] CreateDeliveryRouteDto dto)
@@ -150,8 +150,9 @@ public class DeliveryRouteController : ControllerBase
 
         _context.DeliveryRoutes.Add(route);
         await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetDeliveryRoute), new { id = route.Id }, null);
+        
+        // Returner HTTP 201 Created med URL til den nye rute i Location header
+        return CreatedAtAction(nameof(GetDeliveryRoute), new { id = route.Id }, null); 
     }
 
     /// <summary>
