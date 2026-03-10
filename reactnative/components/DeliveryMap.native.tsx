@@ -100,6 +100,9 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
         setRouteLoading(true);
         setRouteCoordinates([]);
         try {
+            // **** ALLAN ****
+            // Indhent rute geometri mellem stoppestederne langs veje via POST getRoadRouteLeaflet.
+            // Returnerer en liste af punkter langs ruten.
             const coords = await getRoadRouteNative(stops.map((s) => ({ lat: s.lat, lng: s.lng })));
             setRouteCoordinates(coords ?? stops.map((s) => ({ latitude: s.lat, longitude: s.lng })));
         } catch {
@@ -256,6 +259,9 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
                 showsMyLocationButton={true}
             >
                 {/* The Blue Line: follows real roads (fastest route, no ferries) */}
+
+                {/* **** ALLAN **** */}
+                {/* Tegner den blå linje langs ruten. */}
                 <Polyline
                     coordinates={lineCoordinates}
                     strokeColor="#0000FF"

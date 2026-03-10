@@ -27,6 +27,8 @@ import { ThemedView } from '@/components/themed-view';
 
 type UserOption = { id: number; name: string; email: string };
 
+// **** ALLAN ****
+// Definering af alle state variable og funktioner
 export default function CreateRouteScreen() {
   const router = useRouter();
   const [name, setName] = useState('');
@@ -43,9 +45,14 @@ export default function CreateRouteScreen() {
     (async () => {
       const user = await getUser();
       if (user) setCurrentUserId(user.id);
+      // **** ALLAN ****
+      // Henter token fra tokenStorage.ts linje 26 (token bruges til at autentificere brugeren)
       const token = await getToken();
       if (!token) return;
       try {
+
+        // **** ALLAN ****
+        // Henter alle brugere fra UserController.cs linje 36 (kun id, navn og email bruges)
         const res = await fetch(`${API_BASE}/api/User`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -66,15 +73,24 @@ export default function CreateRouteScreen() {
       }
     })();
   }, []);
-
+  // **** ALLAN ****
+  // Finder den valgte bruger fra users arrayet som matcher assignedUserId
   const selectedUser = users.find((u) => u.id === assignedUserId);
+  // **** ALLAN ****
+  // Viser navnet på den valgte bruger i dropdown-menuen
   const assignedUserLabel = assignedUserId === null ? 'Vælg...' : (selectedUser?.name ?? 'Vælg...');
 
+  // **** ALLAN ****
+  // Tilføjer en ny adresse til addresses arrayet
   const addAddress = () => setAddresses((prev) => [...prev, '']);
+  // **** ALLAN ****
+  // Fjerner en adresse fra addresses arrayet
   const removeAddress = (index: number) => {
     if (addresses.length <= 1) return;
     setAddresses((prev) => prev.filter((_, i) => i !== index));
   };
+  // **** ALLAN ****
+  // Indsætter en ny adresse i addresses arrayet
   const setAddress = (index: number, value: string) => {
     setAddresses((prev) => {
       const next = [...prev];
@@ -83,6 +99,8 @@ export default function CreateRouteScreen() {
     });
   };
 
+  // **** ALLAN ****
+  // Opretter en ny rute ved at sende en POST request til DeliveryRouteController.cs linje 33
   const handleSubmit = async () => {
     const trimmedAddresses = addresses.map((a) => a.trim()).filter(Boolean);
     if (trimmedAddresses.length === 0) {
@@ -110,9 +128,14 @@ export default function CreateRouteScreen() {
     const [, day, month, year] = dateMatch;
     const scheduledDateIso = `${year}-${month}-${day}`;
 
+    
     setSubmitting(true);
     try {
+      // **** ALLAN ****
+      // Henter token fra tokenStorage.ts linje 26 (token bruges til at autentificere brugeren)
       const token = await getToken();
+      // **** ALLAN ****
+      // Hvis token ikke findes, viser en fejlmeddelelse og stopper submit-operationen
       if (!token) {
         Alert.alert('Fejl', 'Du er ikke logget ind.');
         setSubmitting(false);
@@ -127,6 +150,8 @@ export default function CreateRouteScreen() {
         Stops: trimmedAddresses.map((Address) => ({ Address })),
       };
 
+      // **** ALLAN ****
+      // Opretter en ny rute ved at sende en POST request til DeliveryRouteController.cs linje 33
       const res = await fetch(`${API_BASE}/api/DeliveryRoute`, {
         method: 'POST',
         headers: {
@@ -143,14 +168,15 @@ export default function CreateRouteScreen() {
           const data = JSON.parse(text);
           msg = data.message ?? data.title ?? text;
         } catch {
-          // keep msg as text
+          // ...
         }
         Alert.alert('Fejl ved oprettelse', msg);
         setSubmitting(false);
         return;
       }
 
-      // Navigate first so we don't rely on alert callback (can be unreliable on web)
+      // **** ALLAN ****
+      // Naviger til deliveryroutes.tsx og viser den nye rute
       router.replace('/(tabs)/deliveryroutes');
       Alert.alert('Rute oprettet', 'Den nye rute er oprettet.');
     } catch (e: unknown) {
@@ -193,7 +219,7 @@ export default function CreateRouteScreen() {
                   style={styles.input}
                   value={scheduledDate}
                   onChangeText={setScheduledDate}
-                  placeholder="15-02-2026"
+                  placeholder="15-02-2026" // **** ALLAN **** - Pladsholder for dato input (skulle have været dags dato)
                   placeholderTextColor="#888"
               />
             </View>

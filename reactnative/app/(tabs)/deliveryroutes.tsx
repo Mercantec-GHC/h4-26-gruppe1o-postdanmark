@@ -91,6 +91,9 @@ export default function DeliveryRoutesScreen() {
         return;
       }
       setCurrentUserId(userId);
+
+      // **** ALLAN ****
+      // Ruter hentes fra backend API baseret på om brugeren er admin eller ej.
       const url = isAdminUser
           ? `${API_BASE}/api/DeliveryRoute`
           : `${API_BASE}/api/DeliveryRoute/assigned/${userId}`;

@@ -13,29 +13,23 @@ export interface LatLng {
   lng: number;
 }
 
-/**
- * Fetch road geometry between consecutive stops (fastest driving route, no ferries when supported).
- * Returns an array of [lat, lng] for Leaflet Polyline, or null on error.
- */
+// **** ALLAN ****
+// Indhent rute geometri mellem stoppestederne langs veje via POST getRoadRouteCoordinates.
 export async function getRoadRouteLeaflet(stops: LatLng[]): Promise<[number, number][] | null> {
   const coords = await getRoadRouteCoordinates(stops);
   if (!coords) return null;
   return coords.map((c) => [c.lat, c.lng] as [number, number]);
 }
 
-/**
- * Fetch road geometry between consecutive stops.
- * Returns an array of { latitude, longitude } for react-native-maps Polyline, or null on error.
- */
+// **** ALLAN ****
+// Indhent rute geometri mellem stoppestederne langs veje via POST getRoadRouteCoordinates.
 export async function getRoadRouteNative(stops: LatLng[]): Promise<{ latitude: number; longitude: number }[] | null> {
   const coords = await getRoadRouteCoordinates(stops);
   if (!coords) return null;
   return coords.map((c) => ({ latitude: c.lat, longitude: c.lng }));
 }
 
-/**
- * Internal: get route as LatLng[]. Prefer backend API (no CORS); fallback to direct OSRM (works on native, often blocked on web).
- */
+
 async function getRoadRouteCoordinates(stops: LatLng[]): Promise<LatLng[] | null> {
   if (stops.length < 2) return stops.length === 1 ? [stops[0]] : null;
 

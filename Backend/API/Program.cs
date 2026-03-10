@@ -70,7 +70,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Add CORS support for Flutter app
+// Add CORS support for React app
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFlutterApp", policy =>

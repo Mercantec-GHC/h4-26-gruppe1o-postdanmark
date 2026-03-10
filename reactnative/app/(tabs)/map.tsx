@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 import DeliveryMap from '@/components/DeliveryMap';
 import type { RouteStopInput } from '@/components/DeliveryMap.native';
 
+// **** ALLAN ****
+// Læser stoppesteder fra URL-parameteren og konverterer dem til RouteStopInput format.
 export default function MapScreen() {
     const { stops: stopsParam } = useLocalSearchParams<{ stops?: string }>();
 

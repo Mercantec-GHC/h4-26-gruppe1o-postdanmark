@@ -22,6 +22,10 @@ public class RoutingController : ControllerBase
     /// <summary>
     /// Hent vejgeometri mellem en række koordinater (hurtigste kørerute, uden færger når muligt).
     /// </summary>
+    
+    // **** ALLAN ****
+    // Hent vejgeometri mellem en række koordinater (hurtigste kørerute, uden færger når muligt).
+    // Returnerer en liste af punkter langs ruten.
     [HttpPost("road-geometry")]
     public async Task<ActionResult<RoadGeometryResponse>> GetRoadGeometry([FromBody] RoadGeometryRequest request)
     {

@@ -17,6 +17,8 @@ interface MapStop {
     backendStopId?: number;
 }
 
+// **** ALLAN ****
+// Konverterer RouteStopInput til MapStop format.
 function routeStopsToMapStops(routeStops: RouteStopInput[]): MapStop[] {
     return routeStops
         .sort((a, b) => a.sequence - b.sequence)
@@ -81,6 +83,9 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
         setRouteLoading(true);
         setRoutePositions(null);
         try {
+            // **** ALLAN ****
+            // Indhent rute geometri mellem stoppestederne langs veje via getRoadRouteLeaflet.
+            // Returnerer en liste af punkter langs ruten.
             const positions = await getRoadRouteLeaflet(stops.map((s) => ({ lat: s.lat, lng: s.lng })));
             setRoutePositions(positions);
         } catch {
@@ -286,6 +291,9 @@ export default function DeliveryMap({ initialStops }: DeliveryMapProps) {
                 />
 
                 {/* The Blue Line: follows real roads (fastest route, no ferries) */}
+                
+                {/* **** ALLAN **** */}
+                {/* Tegner den blå linje langs ruten. */}
                 <Polyline positions={positions} pathOptions={{ color: 'blue', weight: 4 }} />
 
                 {/* The Pins */}
